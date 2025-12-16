@@ -5,10 +5,13 @@ const {
   readSpecificUser,
   updateUser,
   deleteUser,
+  verifyEmail,
 } = require("../controller/user.controller");
 
 const userRouter = Router();
 userRouter.route("/create").post(createUser);
+userRouter.route("/verify-mail").post(verifyEmail);
+
 userRouter.route("/read").get(readAllUser);
 
 // dynamic routes
