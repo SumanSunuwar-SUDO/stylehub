@@ -11,6 +11,7 @@ exports.createUser = async (req, res, next) => {
     let hashedPassword = await bcrypt.hash(data.password, 10);
     data = {
       ...data,
+      role: "user",
       isVerifiedEmail: false,
       password: hashedPassword,
     };
@@ -86,6 +87,48 @@ exports.verifyEmail = async (req, res, next) => {
   }
 };
 
+exports.login = async (req, res, next) => {
+  try {
+    let email = req.body.email;
+    let password = req.body.password;
+
+    let user = await UserModel.findOne({ email: email });
+    if (!user) {
+      throw new error("Invalid dentials");
+    }
+
+    if (email.isVerifiedEmail === "false") {
+      throw new error("Email is not verified");
+    }
+
+    let isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword) {
+      throw new error("Passowrd is not valid");
+    }
+    let infoObj = {
+      id: user._id,
+    };
+    let expiryInfo = {
+      expiresIn: "100d",
+    };
+    let token = await jwt.sign(infoObj, secretKey, expiryInfo);
+
+    res.status(200).json({
+      success: true,
+      message: "webuser login successfully",
+      data: user,
+      token: token,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "User login failed",
+      error: error.message,
+    });
+  }
+};
+
 exports.readAllUser = async (req, res, next) => {
   try {
     let user = await UserModel.find({});
@@ -96,7 +139,7 @@ exports.readAllUser = async (req, res, next) => {
       result: user,
     });
   } catch (error) {
-    res.stauts(400).json({
+    res.status(400).json({
       success: false,
       message: error.message,
     });
