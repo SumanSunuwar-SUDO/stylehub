@@ -129,6 +129,73 @@ exports.login = async (req, res, next) => {
   }
 };
 
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const email = req.body?.email;
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await UserModel.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const token = jwt.sign({ id: user._id }, secretKey, { expiresIn: "1d" });
+
+    await sendEmail({
+      to: email,
+      subject: "Reset Password",
+      html: `
+        <h2>Password Reset</h2>
+        <a href="http://localhost:3000/reset-password?token=${token}">
+          Reset your password
+        </a>
+      `,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset link sent",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    let password = req.body.password;
+    let hashedPassword = await bcrypt.hash(password, 10);
+    let user = await UserModel.findByIdAndUpdate(
+      req._id,
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+      result: user,
+    });
+  } catch (error) {
+    res.status(200).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 exports.readAllUser = async (req, res, next) => {
   try {
     let user = await UserModel.find({});
