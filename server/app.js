@@ -7,6 +7,7 @@ var logger = require("morgan");
 var indexRouter = require("./routes/index");
 const connectMongoDB = require("./config/db/database");
 const productRouter = require("./routes/product.routes");
+const userRouter = require("./routes/user.routes");
 
 var app = express();
 
@@ -29,6 +30,9 @@ app.use("/", indexRouter);
 
 // backend route
 app.use("/api/products", productRouter);
+//backend route
+app.use("/api/users", userRouter);
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
