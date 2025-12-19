@@ -6,6 +6,7 @@ var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
 const connectMongoDB = require("./config/db/database");
+const productRouter = require("./routes/product.routes");
 const userRouter = require("./routes/user.routes");
 
 var app = express();
@@ -27,6 +28,8 @@ app.use(express.static(path.join(__dirname, "public")));
 // router
 app.use("/", indexRouter);
 
+// backend route
+app.use("/api/products", productRouter);
 //backend route
 app.use("/api/users", userRouter);
 
