@@ -8,6 +8,7 @@ var indexRouter = require("./routes/index");
 const connectMongoDB = require("./config/db/database");
 const productRouter = require("./routes/product.routes");
 const userRouter = require("./routes/user.routes");
+const cartRouter = require("./routes/cart.route");
 
 var app = express();
 
@@ -30,8 +31,8 @@ app.use("/", indexRouter);
 
 // backend route
 app.use("/api/products", productRouter);
-//backend route
 app.use("/api/users", userRouter);
+app.use("/api/cart", cartRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
