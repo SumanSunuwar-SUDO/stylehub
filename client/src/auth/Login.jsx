@@ -1,7 +1,74 @@
-import React from "react";
+'use client';
+
+import { useState } from "react";
 
 const Login = () => {
-  return <div>Login Page. Nishant Badda ko kaam</div>;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Email:", email);
+    console.log("Password:", password);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F0E8E8]">
+      <div className="w-full max-w-[600] bg-[#ffffff] rounded-2xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-center mb-2">User Login</h1>
+        <p className="text-center text-gray-500 mb-6">
+          Login to your account
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full px-4 py-2  rounded-lg focus:outline-none  focus:ring-black bg-[#F0E8E8]"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              className="w-full px-4 py-2  rounded-lg focus:outline-none  bg-[#F0E8E8]"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Button */}
+          <button
+            type="submit"
+            className="w-full bg-[#F0E8E8] text-black py-2 rounded-lg hover:bg-gray-800 transition "
+          >
+            Login
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-500 mt-4">
+          Don’t have an account?{" "}
+          <a href="/register" className="text-black font-medium hover:underline">
+            Register
+          </a>
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default Login;
