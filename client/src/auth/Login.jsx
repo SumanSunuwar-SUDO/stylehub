@@ -1,31 +1,36 @@
-'use client';
+"use client";
 
+import { baseURL } from "@/config/env";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
+    const result = await axios.post(`${baseURL}/users/login`, {
+      email,
+      password,
+    });
+    router.push("/");
+    console.log(result);
+    localStorage.setItem("accessToken", result.data.token);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F0E8E8]">
       <div className="w-full max-w-[600] bg-[#ffffff] rounded-2xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-center mb-2">User Login</h1>
-        <p className="text-center text-gray-500 mb-6">
-          Login to your account
-        </p>
+        <p className="text-center text-gray-500 mb-6">Login to your account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium mb-1">Email</label>
             <input
               type="email"
               placeholder="Enter your email"
@@ -38,9 +43,7 @@ const Login = () => {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Password
-            </label>
+            <label className="block text-sm font-medium mb-1">Password</label>
             <input
               type="password"
               placeholder="Enter your password"
@@ -62,7 +65,10 @@ const Login = () => {
 
         <p className="text-center text-sm text-gray-500 mt-4">
           Don’t have an account?{" "}
-          <a href="/register" className="text-black font-medium hover:underline">
+          <a
+            href="/register"
+            className="text-black font-medium hover:underline"
+          >
             Register
           </a>
         </p>
