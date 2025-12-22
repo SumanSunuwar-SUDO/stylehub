@@ -11,8 +11,6 @@ exports.createUser = async (req, res, next) => {
     let hashedPassword = await bcrypt.hash(data.password, 10);
     data = {
       ...data,
-      role: "user",
-      isVerifiedEmail: false,
       password: hashedPassword,
     };
 
@@ -40,9 +38,13 @@ exports.createUser = async (req, res, next) => {
     await sendEmail({
       to: data.email,
       subject: "Account Registration",
-      html: `<h1>Your account has been registered successfully.</h1>
-      <a href="http://localhost:9000/api/users/verify-mail?token=${token}">
-      http://localhost:9000/api/users/verify-mail?token=${token}</a>`,
+      html: `
+    <h2>Welcome to StyleHub </h2>
+    <p>Please verify your email to continue</p>
+    <a href="http://localhost:3000/verify-email?token=${token}">
+      Verify Email
+    </a>
+  `,
     });
 
     res.status(201).json({
@@ -58,26 +60,29 @@ exports.createUser = async (req, res, next) => {
   }
 };
 
-exports.verifyEmail = async (req, res, next) => {
+exports.verifyEmail = async (req, res) => {
   try {
-    // get token
-    let tokenString = req.headers.authorization;
-    let tokenArray = tokenString.split(" ");
-    let token = tokenArray[1];
+    const authHeader = req.headers.authorization;
 
-    // verify token
-    let infoObj = await jwt.verify(token, secretKey);
-    let userId = infoObj.id;
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: "Authorization token missing",
+      });
+    }
 
-    // make isVerified is true
-    let user = await UserModel.findByIdAndUpdate(userId, {
+    const token = authHeader.split(" ")[1];
+
+    const infoObj = jwt.verify(token, secretKey);
+    const userId = infoObj.id;
+
+    await UserModel.findByIdAndUpdate(userId, {
       isVerifiedEmail: true,
     });
 
     res.status(200).json({
       success: true,
-      message: "Email verified successfully.",
-      result: user,
+      message: "Email verified successfully",
     });
   } catch (error) {
     res.status(400).json({
@@ -94,17 +99,17 @@ exports.login = async (req, res, next) => {
 
     let user = await UserModel.findOne({ email: email });
     if (!user) {
-      throw new error("Invalid dentials");
+      throw new Error("Invalid dentials");
     }
 
-    if (email.isVerifiedEmail === "false") {
-      throw new error("Email is not verified");
+    if (user.isVerifiedEmail === false) {
+      throw new Error("Email is not verified");
     }
 
     let isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
-      throw new error("Passowrd is not valid");
+      throw new Error("Passowrd is not valid");
     }
     let infoObj = {
       id: user._id,

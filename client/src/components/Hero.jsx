@@ -2,14 +2,12 @@ import React from "react";
 
 const Hero = () => {
   return (
-    <div className="">
-      <h1 className="">Welcome to StyleHub</h1>
-
-      <div>
-        <h2 className="text-xl font-semibold mb-3">Products</h2>
-        <div>Product items</div>
+    <main className="max-w-[1400px] mx-auto h-[300px] bg-white flex items-center justify-center px-16 rounded-2xl my-4 shadow-[0_0_30px_rgba(0,0,0,0.15)]">
+      <div className="text-center text-black">
+        <h1 className="text-4xl font-bold mb-4">Welcome to StyleHub</h1>
+        <h2 className="text-4xl font-bold">Online Fashion Store</h2>
       </div>
-    </div>
+    </main>
   );
 };
 
