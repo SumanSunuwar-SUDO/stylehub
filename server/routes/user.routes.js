@@ -15,7 +15,7 @@ const { isAuthorization } = require("../middleware/isAuthorization");
 
 const userRouter = Router();
 userRouter.route("/create").post(createUser);
-userRouter.route("/verify-mail").post(verifyEmail);
+userRouter.route("/verify-mail").get(verifyEmail);
 userRouter.route("/reset-passowrd").post(isAuthenticated, resetPassword);
 
 userRouter

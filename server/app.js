@@ -8,6 +8,7 @@ var indexRouter = require("./routes/index");
 const connectMongoDB = require("./config/db/database");
 const productRouter = require("./routes/product.routes");
 const userRouter = require("./routes/user.routes");
+const cors = require("cors");
 
 var app = express();
 
@@ -24,6 +25,11 @@ connectMongoDB();
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 // router
 app.use("/", indexRouter);

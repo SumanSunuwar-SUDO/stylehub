@@ -18,13 +18,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required."],
     },
+    address: {
+      type: String,
+      required: [true, "Address field is required."],
+    },
     role: {
       type: String,
-      required: [true, "Role is required"],
+      enum: ["user", "admin"],
+      default: "user",
     },
     isVerifiedEmail: {
-      type: String,
-      required: [true, "isVerified Email is required."],
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
