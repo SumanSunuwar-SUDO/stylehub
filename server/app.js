@@ -39,6 +39,7 @@ app.use("/api/products", productRouter);
 //backend route
 app.use("/api/users", userRouter);
 
+app.use("/api/file", require("./routes/file.route").fileRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
