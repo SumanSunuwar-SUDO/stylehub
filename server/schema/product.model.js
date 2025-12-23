@@ -10,6 +10,10 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Price required"],
     },
+    size: {
+      type: String,
+      required: [true, "Size is required"],
+    },
     in_stuck: {
       type: Number,
       required: [true, "Stock value is required"],
