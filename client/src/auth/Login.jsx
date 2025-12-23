@@ -19,6 +19,8 @@ const Login = () => {
     router.push("/");
     console.log(result);
     localStorage.setItem("accessToken", result.data.token);
+    setEmail("");
+    setPassword("");
   };
 
   return (
@@ -27,7 +29,7 @@ const Login = () => {
         <h1 className="text-3xl font-bold text-center mb-2">User Login</h1>
         <p className="text-center text-gray-500 mb-6">Login to your account</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form autoComplete="off" onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
@@ -57,7 +59,7 @@ const Login = () => {
           {/* Button */}
           <button
             type="submit"
-            className="w-full bg-[#F0E8E8] text-black py-2 rounded-lg hover:bg-gray-800 transition "
+            className="w-full bg-[#F0E8E8] text-black py-2 rounded-lg hover:bg-blue-600 transition "
           >
             Login
           </button>
