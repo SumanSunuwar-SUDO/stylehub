@@ -1,11 +1,13 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import Cart from "@/UI/Cart";
 import Search from "@/UI/Search";
+import Cart from "@/UI/Cart";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -16,6 +18,10 @@ const Navbar = () => {
       setIsLoggedIn(false);
     }
   }, []);
+
+  const cartClick = () => {
+    router.push("/cart");
+  };
 
   const links = [
     { label: "Home", href: "/" },
@@ -39,6 +45,9 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
+          <div className="cursor-pointer" onClick={() => cartClick()}>
+            <Cart />
+          </div>
           {/* Search */}
           <div className="relative">
             <input
