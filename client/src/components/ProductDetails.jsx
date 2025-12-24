@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import Plus from "@/UI/Plus";
 import Minus from "@/UI/Minus";
 import Back from "@/UI/Back";
+import { addToCart } from "@/utils/cart";
 
 const ProductDetails = () => {
   const [product, setProduct] = useState(null);
@@ -41,7 +42,12 @@ const ProductDetails = () => {
     }
   };
 
-  if (!product) return <div>Loading...</div>;
+  if (!product)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <h2 className="text-xl font-semibold">Loading Product Details...</h2>
+      </div>
+    );
 
   return (
     <main className="max-w-[1400px] mx-auto flex-col items-center justify-center px-16 rounded-2xl my-10">
@@ -96,7 +102,10 @@ const ProductDetails = () => {
               </div>
 
               <div className="flex gap-5">
-                <button className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]">
+                <button
+                  className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
+                  onClick={() => addToCart(product, count)}
+                >
                   Add to Cart
                 </button>
                 <button className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]">

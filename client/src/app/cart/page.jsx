@@ -3,6 +3,7 @@
 import { baseURL } from "@/config/env";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Back from "@/UI/Back";
 
 const CartPage = () => {
   const [cart, setCart] = useState([]);
@@ -96,7 +97,17 @@ const CartPage = () => {
     <main className="max-w-[1400px] mx-auto px-16 py-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Shopping Cart</h1>
+        <h1 className=" flex text-3xl font-bold">
+          <span
+            className="py-2 pr-3"
+            onClick={() => {
+              router.push("/");
+            }}
+          >
+            <Back />
+          </span>
+          Shopping Cart
+        </h1>
         {cart.length > 0 && (
           <button
             onClick={clearCart}

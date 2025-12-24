@@ -4,6 +4,7 @@ import { baseURL } from "@/config/env";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { addToCart } from "@/utils/cart";
 
 const Product = () => {
   const [products, setProducts] = useState([]);
@@ -26,34 +27,6 @@ const Product = () => {
   // Navigate to product details page
   const goToProductDetails = (id) => {
     router.push(`/products/${id}`);
-  };
-
-  const addToCart = (product) => {
-    let cart = [];
-
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      cart = JSON.parse(storedCart);
-    }
-
-    const existingProduct = cart.find((item) => item._id === product._id);
-
-    if (existingProduct) {
-      existingProduct.quantity += 1;
-    } else {
-      cart.push({
-        _id: product._id,
-        productName: product.productName,
-        price: product.price,
-        image: product.image,
-        in_stuck: product.in_stuck,
-        quantity: 1,
-      });
-    }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-
-    alert("Product added to cart 🛒");
   };
 
   return (
