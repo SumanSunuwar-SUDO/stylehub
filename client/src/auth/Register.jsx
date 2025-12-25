@@ -26,6 +26,7 @@ const Register = () => {
     setEmail("");
     setPassword("");
     setAddress("");
+    window.location.href = "/login";
   };
 
   return (

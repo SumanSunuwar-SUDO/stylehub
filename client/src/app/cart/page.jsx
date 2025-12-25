@@ -6,20 +6,25 @@ import { useRouter } from "next/navigation";
 import Back from "@/UI/Back";
 
 const CartPage = () => {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const stored = localStorage.getItem("cart");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      console.error("Failed to parse stored cart:", e);
+      return [];
+    }
+  });
   const router = useRouter();
 
-  // STEP 1: Load cart from localStorage when component mounts
-  useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
-    }
-  }, []);
+  console.log("Cart Items:", cart);
 
   // STEP 2: Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (cart.length >= 0) {
+    // If cart is empty, remove it from storage to avoid keeping an empty array entry
+    if (!cart || cart.length === 0) {
+      localStorage.removeItem("cart");
+    } else {
       localStorage.setItem("cart", JSON.stringify(cart));
     }
   }, [cart]);
@@ -123,7 +128,7 @@ const CartPage = () => {
         <div className="text-center py-20">
           <p className="text-2xl text-gray-500 mb-4">Your cart is empty</p>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/products")}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             Continue Shopping
@@ -212,10 +217,10 @@ const CartPage = () => {
                   </span>
                   <span>Rs. {calculateTotal().toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
                   <span>Rs. 100.00</span>
-                </div>
+                </div> */}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax</span>
                   <span>Rs. {(calculateTotal() * 0.13).toFixed(2)}</span>
@@ -227,9 +232,7 @@ const CartPage = () => {
                   <span>Total</span>
                   <span>
                     Rs.{" "}
-                    {(calculateTotal() + 100 + calculateTotal() * 0.13).toFixed(
-                      2
-                    )}
+                    {(calculateTotal() + calculateTotal() * 0.13).toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -24,7 +24,36 @@ const Product = () => {
     getProducts();
   }, []);
 
-  // Navigate to product details page
+  function addToCartHandler(product, quantity = 1) {
+    let cart = [];
+
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      cart = JSON.parse(storedCart);
+    }
+
+    const existingProduct = cart.find((item) => item._id === product._id);
+
+    if (existingProduct) {
+      if (existingProduct.quantity + quantity > product.in_stuck) {
+        alert("Cannot add more than available stock.");
+        return;
+      } else {
+        existingProduct.quantity += quantity;
+      }
+    } else {
+      cart.push({
+        _id: product._id,
+        productName: product.productName,
+        price: product.price,
+        image: product.image,
+        in_stuck: product.in_stuck,
+        quantity: quantity,
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }
   const goToProductDetails = (id) => {
     router.push(`/products/${id}`);
   };
@@ -64,7 +93,7 @@ const Product = () => {
               <div className="flex justify-between items-center">
                 <button
                   className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
-                  onClick={() => addToCart(item)}
+                  onClick={() => addToCartHandler(item)}
                 >
                   Add To Cart
                 </button>
