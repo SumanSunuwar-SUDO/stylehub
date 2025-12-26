@@ -11,6 +11,7 @@ import { addToCart } from "@/utils/cart";
 
 const ProductDetails = () => {
   const [product, setProduct] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [count, setCount] = useState(1);
   const params = useParams();
   const { id } = params;
@@ -28,6 +29,11 @@ const ProductDetails = () => {
 
     if (id) fetchProductDetails();
   }, [id]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    setIsLoggedIn(!!token);
+  }, []);
 
   // Safe increment and decrement functions
   const increment = () => {
@@ -104,7 +110,11 @@ const ProductDetails = () => {
               <div className="flex gap-5">
                 <button
                   className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
-                  onClick={() => addToCart(product, count)}
+                  onClick={() => {
+                    isLoggedIn
+                      ? addToCart(product, count)
+                      : router.push("/login");
+                  }}
                 >
                   Add to Cart
                 </button>
