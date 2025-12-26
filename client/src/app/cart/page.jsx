@@ -226,10 +226,7 @@ const CartPage = () => {
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between text-xl font-bold">
                   <span>Total</span>
-                  <span>
-                    Rs.{" "}
-                    {(calculateTotal() + calculateTotal() * 0.13).toFixed(2)}
-                  </span>
+                  <span>Rs. {calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
 

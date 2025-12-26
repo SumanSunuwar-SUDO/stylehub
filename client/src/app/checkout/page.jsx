@@ -30,9 +30,7 @@ const CheckoutPage = () => {
   );
 
   const shippingCost = 100;
-  const taxRate = 0.13;
-  const tax = subtotal * taxRate;
-  const grandTotal = subtotal + shippingCost + tax;
+  const grandTotal = subtotal + shippingCost;
 
   // Handle checkout form submission
   const handleSubmit = async (e) => {
@@ -201,10 +199,6 @@ const CheckoutPage = () => {
             <div className="flex justify-between">
               <span>Shipping</span>
               <span>Rs.{shippingCost}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tax</span>
-              <span>Rs.{tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-xl border-t pt-2">
               <span>Total</span>
