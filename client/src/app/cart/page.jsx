@@ -221,10 +221,6 @@ const CartPage = () => {
                   <span className="text-gray-600">Shipping</span>
                   <span>Rs. 100.00</span>
                 </div> */}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span>Rs. {(calculateTotal() * 0.13).toFixed(2)}</span>
-                </div>
               </div>
 
               <div className="border-t pt-4 mb-6">

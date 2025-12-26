@@ -51,6 +51,7 @@ const Product = () => {
         _id: product._id,
         productName: product.productName,
         price: product.price,
+        size: product.size,
         image: product.image,
         in_stuck: product.in_stuck,
         quantity: quantity,
