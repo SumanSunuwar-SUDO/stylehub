@@ -2,19 +2,28 @@
 
 import Back from "@/UI/Back";
 import { baseURL } from "@/config/env";
+import { AuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 const CheckoutPage = () => {
   const router = useRouter();
-
   const [cart, setCart] = useState([]);
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      router.push("/login");
+    }
+  }, []);
 
   // Load cart from localStorage
   useEffect(() => {

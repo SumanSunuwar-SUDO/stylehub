@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 
 const Product = () => {
   const [products, setProducts] = useState([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -22,11 +21,6 @@ const Product = () => {
     };
 
     getProducts();
-  }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    setIsLoggedIn(!!token);
   }, []);
 
   function addToCartHandler(product, quantity = 1) {
@@ -100,7 +94,7 @@ const Product = () => {
                 <button
                   className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
                   onClick={() => {
-                    isLoggedIn ? addToCartHandler(item) : router.push("/login");
+                    addToCartHandler(item);
                   }}
                 >
                   Add To Cart
