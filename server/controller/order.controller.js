@@ -3,7 +3,7 @@ const Product = require("../schema/product.model");
 const Order = require("../schema/order.models");
 
 // CREATE ORDER
-exports.createOrder = async (req, res) => {
+exports.createOrder = async (req, res, next) => {
   try {
     const {
       fullName,
@@ -88,10 +88,14 @@ exports.createOrder = async (req, res) => {
 };
 
 // GET ALL ORDERS (admin)
-exports.getAllOrders = async (req, res) => {
+exports.getAllOrders = async (req, res, next) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, result: orders });
+    res.status(200).json({
+      success: true,
+      message: "Order read successfullt.",
+      result: orders,
+    });
   } catch (error) {
     res.status(400).json({
       success: false,
@@ -101,7 +105,7 @@ exports.getAllOrders = async (req, res) => {
 };
 
 // GET ORDER BY ID
-exports.getOrderById = async (req, res) => {
+exports.getOrderById = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order)

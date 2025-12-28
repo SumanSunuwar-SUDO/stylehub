@@ -12,12 +12,12 @@ const {
 const orderRouter = Router();
 
 // Routes
-orderRouter.post("/create", createOrder); // Create COD order
-orderRouter.get("/all", getAllOrders); // Get all orders
-orderRouter.get("/:id", getOrderById); // Get order by ID
-orderRouter.get("/customer/:email", getOrdersByEmail); // Get orders by customer email
-orderRouter.put("/status/:id", updateOrderStatus); // Update order status
-orderRouter.put("/cancel/:id", cancelOrder); // Cancel order
-orderRouter.delete("/delete/:id", deleteOrder); // Delete order
+orderRouter.route("/create").post(createOrder);
+orderRouter.route("/all").get(getAllOrders);
+orderRouter.route("/:id").get(getOrderById);
+orderRouter.route("/customer/:email").get(getOrdersByEmail);
+orderRouter.route("/status/:id").put(updateOrderStatus);
+orderRouter.route("/cancel/:id").put(cancelOrder);
+orderRouter.route("/delete/:id").delete(deleteOrder);
 
 module.exports = orderRouter;

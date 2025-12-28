@@ -2,10 +2,9 @@
 
 import Back from "@/UI/Back";
 import { baseURL } from "@/config/env";
-import { AuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -15,8 +14,6 @@ const CheckoutPage = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -74,7 +71,7 @@ const CheckoutPage = () => {
       if (data.success) {
         localStorage.removeItem("cart");
         alert("Order placed successfully!");
-        router.push(`/order-success/${data.orderId}`);
+        router.push(`/orders/${data.orderId}`);
       } else {
         alert(data.message || "Failed to place order");
       }
