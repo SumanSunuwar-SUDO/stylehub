@@ -23,7 +23,7 @@ const orderSchema = new mongoose.Schema(
     subTotal: { type: Number, required: true },
     total: { type: Number, required: true },
 
-    paymentMethod: { type: String, enum: ["cod"], required: true },
+    paymentMethod: { type: String, enum: ["cod", "esewa"], required: true },
     paymentStatus: {
       type: String,
       enum: ["pending", "completed", "failed", "refunded"],
@@ -34,6 +34,13 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
       default: "pending",
+    },
+
+    // esewa specific fields
+    esewa: {
+      transactio_uuid: String,
+      transaction_code: String,
+      product_code: String,
     },
 
     deliveredDate: Date,
