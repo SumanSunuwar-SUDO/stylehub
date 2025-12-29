@@ -38,7 +38,6 @@ const OrdersHistoryPage = () => {
 
       console.log("ORDERS RESPONSE 👉", res.data);
 
-      // ✅ HANDLE DIFFERENT RESPONSE SHAPES SAFELY
       if (Array.isArray(res.data)) {
         setOrders(res.data);
       } else if (Array.isArray(res.data.orders)) {
