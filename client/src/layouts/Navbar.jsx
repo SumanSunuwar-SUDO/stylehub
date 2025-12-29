@@ -133,9 +133,17 @@ const Navbar = () => {
                     Hi, {userName}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">{userEmail}</p>
+                  <div
+                    className="px-3 py-2 border rounded-md text-md my-2"
+                    onClick={() => {
+                      router.push("/orders");
+                    }}
+                  >
+                    My Orders
+                  </div>
                   <button
                     onClick={handleLogout}
-                    className="mt-3 w-full bg-red-500 text-white py-2 rounded-md text-sm hover:bg-red-600"
+                    className=" w-full bg-red-500 text-white py-2 rounded-md text-sm hover:bg-red-600"
                   >
                     Logout
                   </button>

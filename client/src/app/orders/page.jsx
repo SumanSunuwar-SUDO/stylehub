@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 
 const OrdersHistoryPage = () => {
   const router = useRouter();
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
@@ -18,23 +19,37 @@ const OrdersHistoryPage = () => {
       return;
     }
 
-    // Get user email from localStorage
-    const email = localStorage.getItem("userEmail");
-    if (email) {
-      setUserEmail(email);
-      fetchOrders(email);
+    const user = localStorage.getItem("user");
+    if (!user) {
+      router.push("/login");
+      return;
     }
+
+    const parsedUser = JSON.parse(user);
+    const email = parsedUser.email;
+
+    setUserEmail(email);
+    fetchOrders(email);
   }, []);
 
   const fetchOrders = async (email) => {
     try {
-      const { data } = await axios.get(
-        `${baseURL}/orders/customer/${encodeURIComponent(email)}`
-      );
-      setOrders(data); // assuming backend returns array of orders
+      const res = await axios.get(`${baseURL}/orders/customer/${email}`);
+
+      console.log("ORDERS RESPONSE 👉", res.data);
+
+      // ✅ HANDLE DIFFERENT RESPONSE SHAPES SAFELY
+      if (Array.isArray(res.data)) {
+        setOrders(res.data);
+      } else if (Array.isArray(res.data.orders)) {
+        setOrders(res.data.orders);
+      } else {
+        setOrders([]);
+      }
     } catch (error) {
       console.error("Error fetching orders:", error);
       alert("Failed to load orders");
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -61,7 +76,7 @@ const OrdersHistoryPage = () => {
     if (!confirm("Are you sure you want to cancel this order?")) return;
 
     try {
-      const { data } = await axios.put(`${baseURL}/orders/cancel/${orderId}`);
+      await axios.put(`${baseURL}/orders/cancel/${orderId}`);
       alert("Order cancelled successfully!");
       fetchOrders(userEmail);
     } catch (error) {
@@ -101,88 +116,91 @@ const OrdersHistoryPage = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {orders.map((order) => (
-            <div
-              key={order._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
-            >
-              {/* Order Header */}
-              <div className="bg-gray-50 p-6 border-b">
-                <div className="flex flex-wrap justify-between items-start gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Order ID</p>
-                    <p className="font-semibold">#{order._id}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Date</p>
-                    <p className="font-semibold">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total</p>
-                    <p className="font-semibold text-lg">Rs.{order.total}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Status</p>
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                        order.orderStatus
-                      )}`}
-                    >
-                      {order.orderStatus}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Order Items */}
-              <div className="p-6">
-                <div className="space-y-4">
-                  {order.items?.map((item, index) => (
-                    <div key={index} className="flex gap-4 items-center">
-                      <img
-                        src={
-                          item.image?.startsWith("http")
-                            ? item.image
-                            : `${baseURL}/images/${item.image}`
-                        }
-                        alt={item.productName}
-                        className="w-20 h-20 rounded object-cover"
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{item.productName}</h3>
-                        <p className="text-sm text-gray-600">
-                          Size: {item.size} | Qty: {item.quantity}
-                        </p>
-                        <p className="text-sm font-semibold text-blue-600">
-                          Rs.{item.price} × {item.quantity} = Rs.{item.subTotal}
-                        </p>
-                      </div>
+          {Array.isArray(orders) &&
+            orders.map((order) => (
+              <div
+                key={order._id}
+                className="bg-white rounded-lg shadow-md overflow-hidden"
+              >
+                {/* Order Header */}
+                <div className="bg-gray-50 p-6 border-b">
+                  <div className="flex flex-wrap justify-between items-start gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Order ID</p>
+                      <p className="font-semibold">#{order._id}</p>
                     </div>
-                  ))}
+                    <div>
+                      <p className="text-sm text-gray-600">Date</p>
+                      <p className="font-semibold">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Total</p>
+                      <p className="font-semibold text-lg">Rs.{order.total}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Status</p>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                          order.orderStatus
+                        )}`}
+                      >
+                        {order.orderStatus}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Order Actions */}
-                <div className="flex gap-3 mt-6 pt-6 border-t">
-                  <button
-                    onClick={() => router.push(`/order/${order._id}`)}
-                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
-                  >
-                    View Details
-                  </button>
-                  {order.orderStatus.toLowerCase() === "pending" && (
+                {/* Order Items */}
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {order.items?.map((item, index) => (
+                      <div key={index} className="flex gap-4 items-center">
+                        <img
+                          src={
+                            item.image?.startsWith("http")
+                              ? item.image
+                              : `${baseURL}/images/${item.image}`
+                          }
+                          alt={item.productName}
+                          className="w-20 h-20 rounded object-cover"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{item.productName}</h3>
+                          <p className="text-sm text-gray-600">
+                            Size: {item.size} | Qty: {item.quantity}
+                          </p>
+                          <p className="text-sm font-semibold text-blue-600">
+                            Rs.{item.price} × {item.quantity} = Rs.
+                            {item.subTotal}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3 mt-6 pt-6 border-t">
                     <button
-                      onClick={() => handleCancelOrder(order._id)}
-                      className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700"
+                      onClick={() => router.push(`/orders/${order._id}`)}
+                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
                     >
-                      Cancel Order
+                      View Details
                     </button>
-                  )}
+
+                    {order.orderStatus?.toLowerCase() === "pending" && (
+                      <button
+                        onClick={() => handleCancelOrder(order._id)}
+                        className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
     </main>
