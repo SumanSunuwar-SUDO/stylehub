@@ -7,7 +7,8 @@ const {
   updateOrderStatus,
   cancelOrder,
   deleteOrder,
-  initiateEsewaPayment, // add this
+  initiateEsewaPayment,
+  esewaSuccess, // add this
 } = require("../controller/order.controller");
 
 const orderRouter = Router();
@@ -17,6 +18,7 @@ orderRouter.route("/create").post(createOrder);
 
 // eSewa initiation
 orderRouter.route("/esewa/initiate").post(initiateEsewaPayment);
+orderRouter.route("/esewa/success").get(esewaSuccess);
 
 // other routes
 orderRouter.route("/all").get(getAllOrders);

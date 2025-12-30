@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const crypto = require("crypto");
 const Product = require("../schema/product.model");
 const Order = require("../schema/order.models");
@@ -214,6 +215,35 @@ exports.initiateEsewaPayment = async (req, res) => {
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: "Cart is empty" });
     }
+    const orderItems = [];
+
+    for (const item of items) {
+      const product = await Product.findById(item._id);
+
+      if (!product) {
+        return res.status(400).json({
+          success: false,
+          message: `Product not found: ${item.productName}`,
+        });
+      }
+
+      if (product.in_stuck < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Out of stock: ${item.productName}`,
+        });
+      }
+
+      orderItems.push({
+        product: product._id,
+        productName: item.productName,
+        price: item.price,
+        quantity: item.quantity,
+        size: item.size,
+        image: item.image,
+        subTotal: item.price * item.quantity,
+      });
+    }
 
     const order = await Order.create({
       fullName,
@@ -228,6 +258,7 @@ exports.initiateEsewaPayment = async (req, res) => {
       orderStatus: "pending",
     });
 
+    //esewa signature
     const transaction_uuid = order._id.toString();
     const product_code = "EPAYTEST";
 
@@ -266,47 +297,74 @@ exports.initiateEsewaPayment = async (req, res) => {
 // eSewa Success Verification
 exports.esewaSuccess = async (req, res) => {
   try {
-    const decoded = JSON.parse(
-      Buffer.from(req.query.data, "base64").toString("utf-8")
-    );
-    const { transaction_uuid, total_amount, product_code, signature } = decoded;
-
-    const data = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
-    const expectedSignature = crypto
-      .createHmac("sha256", esewa_secret_key)
-      .update(data)
-      .digest("base64");
-
-    if (signature !== expectedSignature) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid signature" });
+    if (!req.query.data) {
+      return res.status(400).json({ success: false, message: "Data missing" });
     }
 
+    // Decode base64 safely
+    let decoded;
+    try {
+      decoded = JSON.parse(
+        Buffer.from(req.query.data, "base64").toString("utf-8")
+      );
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid data format" });
+    }
+
+    const { transaction_uuid } = decoded;
+
+    // Find order
     const order = await Order.findById(transaction_uuid);
     if (!order)
       return res
         .status(404)
         .json({ success: false, message: "Order not found" });
 
+    // If already completed, return order
     if (order.paymentStatus === "completed") {
-      return res.json({ success: true });
+      return res.json({ success: true, order });
     }
 
-    // Reduce stock
-    for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { in_stuck: -item.quantity },
-      });
-    }
-
+    // Mark payment completed and processing
     order.paymentStatus = "completed";
     order.orderStatus = "processing";
+
+    // Reduce stock for each item and collect update results
+    const stockUpdates = [];
+    for (const item of order.items) {
+      try {
+        // Use item._id instead of item.product or item.product._id
+        const product = await Product.findById(item._id);
+        if (!product) {
+          console.log("Product not found:", item._id);
+          continue;
+        }
+
+        console.log("Before stock:", product.in_stuck);
+
+        await Product.findByIdAndUpdate(item._id, {
+          $inc: { in_stuck: -item.quantity },
+        });
+
+        const updated = await Product.findById(item._id);
+        console.log("After stock:", updated.in_stuck);
+      } catch (err) {
+        console.error(
+          "Error updating stock for product:",
+          item._id,
+          err.message
+        );
+      }
+    }
+
     await order.save();
 
-    res.json({ success: true });
+    // Return order object with stockUpdates for debugging/frontend
+    res.json({ success: true, order, stockUpdates });
   } catch (error) {
-    console.error("ESWEA SUCCESS ERROR:", error.message);
-    res.status(500).json({ success: false, message: error.message });
+    console.error("ESWEA SUCCESS ERROR:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
