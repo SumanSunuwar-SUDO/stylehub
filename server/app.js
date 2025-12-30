@@ -10,6 +10,7 @@ const connectMongoDB = require("./config/db/database");
 const productRouter = require("./routes/product.routes");
 const userRouter = require("./routes/user.routes");
 const orderRouter = require("./routes/order.route");
+const dashboardRouter = require("./routes/dashboard.route");
 
 var app = express();
 
@@ -30,6 +31,7 @@ app.use("/api/products", productRouter);
 app.use("/api/users", userRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/file", require("./routes/file.route").fileRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 // 404
 app.use(function (req, res, next) {
