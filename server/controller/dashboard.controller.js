@@ -11,7 +11,7 @@ exports.getDashboardStats = async (req, res, next) => {
 
     //pending payments
     const pendignPayments = await Order.countDocuments({
-      paymentStatus: "Pending",
+      paymentStatus: "pending",
     });
 
     //total sales

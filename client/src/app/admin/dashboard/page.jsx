@@ -52,51 +52,6 @@ const page = () => {
           <h1 className="text-xl font-bold">{stats.totalCustomers}</h1>
         </div>
       </div>
-
-      {/* Recent Orders */}
-      <div className="mt-8 px-5">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-semibold">Recent Orders</h1>
-          <div className="flex items-center relative">
-            <input
-              type="text"
-              placeholder="Search by customer name..."
-              className="h-[35px] text-sm px-4 pr-10 rounded-md border bg-[#ffffff] border-gray-300 outline-none"
-            />
-            <button className="absolute right-2 text-gray-500 hover:text-black">
-              <Search />
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto bg-white rounded-md">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-2 border-b">Order ID</th>
-                <th className="px-4 py-2 border-b">Customer Name</th>
-                <th className="px-4 py-2 border-b">Order Date</th>
-                <th className="px-4 py-2 border-b">Total</th>
-                <th className="px-4 py-2 border-b">Status</th>
-                <th className="px-4 py-2 border-b">Payment Status</th>
-                <th className="px-4 py-2 border-b">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="px-4 py-2 border-b">#001</td>
-                <td className="px-4 py-2 border-b">John Doe</td>
-                <td className="px-4 py-2 border-b">2025-12-30</td>
-                <td className="px-4 py-2 border-b">NRP.5000</td>
-                <td className="px-4 py-2 border-b">Completed</td>
-                <td className="px-4 py-2 border-b">Paid</td>
-                <td className="px-4 py-2 border-b">View</td>
-              </tr>
-              {/* Add more rows dynamically */}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </main>
   );
 };
