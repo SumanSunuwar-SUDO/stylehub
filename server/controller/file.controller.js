@@ -5,7 +5,7 @@ exports.fileUpload = (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "File uploaded successfully",
-      result: link,
+      imageUrl: link,
     });
   } catch (error) {
     res.status(400).json({
@@ -14,4 +14,3 @@ exports.fileUpload = (req, res, next) => {
     });
   }
 };
-
