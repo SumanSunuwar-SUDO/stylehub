@@ -11,7 +11,6 @@ import { addToCart } from "@/utils/cart";
 
 const ProductDetails = () => {
   const [product, setProduct] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [count, setCount] = useState(1);
   const params = useParams();
   const { id } = params;
@@ -30,11 +29,6 @@ const ProductDetails = () => {
     if (id) fetchProductDetails();
   }, [id]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    setIsLoggedIn(!!token);
-  }, []);
-
   // Safe increment and decrement functions
   const increment = () => {
     if (product && count < product.in_stuck) {
@@ -47,6 +41,26 @@ const ProductDetails = () => {
       setCount(count - 1);
     }
   };
+  const buyNowHandler = (product, count) => {
+    const imageURL = product.image.startsWith("http")
+      ? product.image
+      : `${baseURL}/images/${product.image}`;
+
+    const buyNowCart = [
+      {
+        _id: product._id,
+        productName: product.productName,
+        price: product.price,
+        size: product.size,
+        image: imageURL,
+        in_stuck: product.in_stuck,
+        quantity: count,
+      },
+    ];
+
+    localStorage.setItem("buyNowCart", JSON.stringify(buyNowCart));
+    router.push("/checkout");
+  };
 
   if (!product)
     return (
@@ -57,8 +71,8 @@ const ProductDetails = () => {
 
   return (
     <main className="max-w-[1400px] mx-auto flex-col items-center justify-center px-16 rounded-2xl my-10">
-      <div className="flex text-[30px] font-bold">
-        <div className="p-3" onClick={() => router.push("/")}>
+      <div className="flex text-3xl font-bold">
+        <div className="p-1" onClick={() => router.push("/products")}>
           <Back />
         </div>
         <h1>Product Details</h1>
@@ -76,20 +90,19 @@ const ProductDetails = () => {
             </div>
 
             <div className="mx-5 mt-10">
-              <h1 className="mt-4 text-[30px] font-bold">
-                {product.productName}
-              </h1>
-              <p className="mt-2 text-[20px] font-semibold">
+              <h1 className="mt-4 text-2xl font-bold">{product.productName}</h1>
+              <p className="mt-2 text-xl font-semibold">
                 Price: Rs.{product.price}
               </p>
-              <p className="mt-2 text-[20px] font-semibold">
-                Size: {product.size}
-              </p>
-              <p className="mt-2 text-[20px] font-semibold">
+              <p className="mt-2 text-xl font-semibold">Size: {product.size}</p>
+              <p className="mt-2 text-xl font-semibold">
                 Category: {product.category}
               </p>
+              <p className="mt-2 text-xl font-semibold">
+                In Stock:{product.in_stuck}
+              </p>
 
-              <div className="flex py-3 gap-2 text-[20px] font-semibold">
+              <div className="flex py-3 gap-2 text-xl font-semibold">
                 <h1 className="py-2">Quantity:</h1>
 
                 <button
@@ -111,14 +124,17 @@ const ProductDetails = () => {
                 <button
                   className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
                   onClick={() => {
-                    isLoggedIn
-                      ? addToCart(product, count)
-                      : router.push("/login");
+                    addToCart(product, count);
                   }}
                 >
                   Add to Cart
                 </button>
-                <button className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]">
+                <button
+                  className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
+                  onClick={() => {
+                    buyNowHandler(product, count);
+                  }}
+                >
                   Buy Now
                 </button>
               </div>
@@ -127,7 +143,7 @@ const ProductDetails = () => {
 
           <div className="px-15 pb-10 text-[20px] font-semibold">
             Description:
-            <p className="text-[18px] font-normal mt-2">
+            <p className="text-xl font-normal mt-2 text-justify">
               {product.description}
             </p>
           </div>

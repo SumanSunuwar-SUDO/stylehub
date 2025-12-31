@@ -13,7 +13,7 @@ const CheckoutPage = () => {
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cod"); // ✅ defined
+  const [paymentMethod, setPaymentMethod] = useState("cod");
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -21,8 +21,10 @@ const CheckoutPage = () => {
   }, []);
 
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) setCart(JSON.parse(storedCart));
+    const storedCart = localStorage.getItem("buyNowCart")
+      ? JSON.parse(localStorage.getItem("buyNowCart"))
+      : JSON.parse(localStorage.getItem("cart") || "[]");
+    setCart(storedCart);
   }, []);
 
   const subtotal = cart.reduce(
@@ -79,6 +81,7 @@ const CheckoutPage = () => {
         );
         if (data.success) {
           localStorage.removeItem("cart");
+          localStorage.removeItem("buyNowCart");
           router.push(`/orders/${data.orderId}`);
         }
       }

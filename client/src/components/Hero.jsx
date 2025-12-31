@@ -27,7 +27,7 @@ const Hero = () => {
             onClick={() => router.push("/products")}
             className="flex justify-center items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
-            <h1>Find Your Product</h1>
+            <h1>Explore Products</h1>
             <Forward />
           </button>
         </div>

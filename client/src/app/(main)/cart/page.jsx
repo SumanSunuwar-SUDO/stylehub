@@ -99,7 +99,7 @@ const CartPage = () => {
   };
 
   return (
-    <main className="max-w-[1400px] mx-auto px-16 py-8">
+    <main className="max-w-[1400px] h-screen mx-auto px-16 py-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className=" flex text-3xl font-bold">
