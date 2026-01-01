@@ -12,7 +12,7 @@ const orderItemSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // order level ma matra user
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     fullName: { type: String, trim: true, required: true },
     email: { type: String, lowercase: true, required: true },
     phone: { type: String, required: true },
@@ -26,13 +26,13 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: { type: String, enum: ["cod", "esewa"], required: true },
     paymentStatus: {
       type: String,
-      enum: ["pending", "completed", "failed", "refunded"],
+      enum: ["pending", "completed", "failed"],
       default: "pending",
     },
 
     orderStatus: {
       type: String,
-      enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
+      enum: ["pending", "processing", "delivered", "cancelled"],
       default: "pending",
     },
 

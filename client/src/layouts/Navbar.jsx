@@ -1,75 +1,24 @@
 "use client";
+
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import Search from "@/UI/Search";
 import Cart from "@/UI/Cart";
 import { useRouter } from "next/navigation";
+import { CartContext } from "@/context/CartContext";
+import { AuthContext } from "@/context/AuthContext";
 
 const Navbar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
+  const { cart, getTotalItems } = useContext(CartContext);
+  const { user, isLoggedIn, logout } = useContext(AuthContext); // <-- use AuthContext
   const router = useRouter();
+  const [showDetails, setShowDetails] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    setIsLoggedIn(!!token);
-
-    if (token) {
-      // Try different possible keys where user data might be stored
-      const user = localStorage.getItem("user");
-      const userData = localStorage.getItem("userData");
-
-      console.log("user:", user);
-      console.log("userData:", userData);
-
-      if (user) {
-        const parsed = JSON.parse(user);
-        console.log("Parsed user:", parsed);
-        setUserName(
-          parsed.name || parsed.username || parsed.firstName || "User"
-        );
-        setUserEmail(parsed.email || "");
-      } else if (userData) {
-        const parsed = JSON.parse(userData);
-        console.log("Parsed userData:", parsed);
-        setUserName(
-          parsed.name || parsed.username || parsed.firstName || "User"
-        );
-        setUserEmail(parsed.email || "");
-      }
-    }
-  }, []);
-
-  const toggleDetails = () => {
-    setShowDetails(!showDetails);
-  };
-
-  const updateCartCount = () => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      const parsedCart = JSON.parse(storedCart);
-      const totalItems = parsedCart.reduce(
-        (acc, item) => acc + item.quantity,
-        0
-      );
-      setCartCount(totalItems);
-    } else {
-      setCartCount(0);
-    }
-  };
-
-  const cartClick = () => {
-    router.push("/cart");
-  };
+  const toggleDetails = () => setShowDetails(!showDetails);
+  const cartClick = () => router.push("/cart");
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userData");
-    setIsLoggedIn(false);
+    logout(); // <-- call logout from AuthContext
     setShowDetails(false);
     router.push("/login");
   };
@@ -83,9 +32,9 @@ const Navbar = () => {
   return (
     <nav className="h-[70px] bg-[#E67514] w-full">
       <div className="flex justify-between items-center container mx-auto h-full px-15">
-        <h1 className="text-[24px] text-white font-bold">
+        <Link href={"/"} className="text-[24px] text-white font-bold">
           Style<span className="text-blue-700">Hub</span>
-        </h1>
+        </Link>
 
         <div className="flex justify-center items-center gap-5 font-semibold text-[20px] pl-20">
           {links.map((link) => (
@@ -96,12 +45,12 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Cart Icon */}
+          {/* Cart */}
           <div className="relative cursor-pointer" onClick={cartClick}>
             <Cart />
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                {cartCount}
+            {getTotalItems() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {getTotalItems()}
               </span>
             )}
           </div>
@@ -118,32 +67,31 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* Login / Profile */}
-          {isLoggedIn ? (
+          {/* Profile/Login */}
+          {isLoggedIn && user ? (
             <div className="relative">
               <span
-                className="h-[30px] w-[30px] rounded-full bg-white cursor-pointer block"
+                className="h-[35px] w-[35px] rounded-full bg-blue-600 cursor-pointer text-white text-xl font-semibold flex justify-center items-center hover:bg-blue-700"
                 onClick={toggleDetails}
-              ></span>
+              >
+                {user.name?.charAt(0).toUpperCase() || "U"}
+              </span>
 
-              {/* Dropdown */}
               {showDetails && (
                 <div className="absolute right-0 mt-2 w-60 bg-white rounded-lg shadow-lg p-4 z-50">
                   <p className="text-sm font-semibold text-gray-800">
-                    Hi, {userName}
+                    Hi, {user.name || user.username || "User"}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">{userEmail}</p>
+                  <p className="text-xs text-gray-600 mt-1">{user.email}</p>
                   <div
-                    className="px-3 py-2 border rounded-md text-md my-2"
-                    onClick={() => {
-                      router.push("/orders");
-                    }}
+                    className="px-3 py-2 border rounded-md text-md my-2 cursor-pointer"
+                    onClick={() => router.push("/orders")}
                   >
                     My Orders
                   </div>
                   <button
                     onClick={handleLogout}
-                    className=" w-full bg-red-500 text-white py-2 rounded-md text-sm hover:bg-red-600"
+                    className="w-full bg-blue-600 text-white py-2 rounded-md text-sm hover:bg-blue-700"
                   >
                     Logout
                   </button>
@@ -153,7 +101,7 @@ const Navbar = () => {
           ) : (
             <Link
               href="/login"
-              className="px-5 py-1 text-[18px] font-semibold bg-blue-600 text-white rounded-md"
+              className="px-5 py-1 text-[18px] font-semibold bg-blue-600 hover:bg-blue-700 transition-all duration-300 text-white rounded-md"
             >
               Login
             </Link>

@@ -1,8 +1,16 @@
 "use client";
 
-import Forward from "@/UI/Forward";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React from "react";
+
+// Safe import of Forward with fallback
+let ForwardIcon;
+try {
+  ForwardIcon = require("@/UI/Forward").default;
+} catch (e) {
+  console.warn("Forward component not found, using fallback arrow.");
+  ForwardIcon = () => <span>→</span>; // fallback icon
+}
 
 const Hero = () => {
   const router = useRouter();
@@ -22,13 +30,14 @@ const Hero = () => {
           Fashion that fits your lifestyle — modern, comfortable, and made for
           everyday confidence.
         </p>
+
         <div className="mt-7">
           <button
             onClick={() => router.push("/products")}
             className="flex justify-center items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             <h1>Explore Products</h1>
-            <Forward />
+            <ForwardIcon />
           </button>
         </div>
       </div>

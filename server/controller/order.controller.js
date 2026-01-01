@@ -4,8 +4,8 @@ const Product = require("../schema/product.model");
 const Order = require("../schema/order.models");
 const { esewa_secret_key } = require("../utils/constant");
 
-// CREATE ORDER
-exports.createOrder = async (req, res, next) => {
+// CREATE ORDER (COD)
+exports.createOrder = async (req, res) => {
   try {
     const {
       fullName,
@@ -21,7 +21,7 @@ exports.createOrder = async (req, res, next) => {
     if (paymentMethod === "esewa") {
       return res.status(400).json({
         success: false,
-        message: " Use esewa initiate API,",
+        message: "Use esewa initiate API",
       });
     }
 
@@ -32,8 +32,6 @@ exports.createOrder = async (req, res, next) => {
     const orderItems = [];
 
     for (const item of items) {
-      const productId = item._id;
-
       if (!item.size) {
         return res.status(400).json({
           success: false,
@@ -43,7 +41,7 @@ exports.createOrder = async (req, res, next) => {
 
       // Reduce stock atomically
       const product = await Product.findOneAndUpdate(
-        { _id: productId, in_stuck: { $gte: item.quantity } },
+        { _id: item._id, in_stuck: { $gte: item.quantity } },
         { $inc: { in_stuck: -item.quantity } },
         { new: true }
       );
@@ -56,7 +54,7 @@ exports.createOrder = async (req, res, next) => {
       }
 
       orderItems.push({
-        product: productId,
+        product: item._id,
         productName: item.productName,
         price: item.price,
         quantity: item.quantity,
@@ -67,7 +65,7 @@ exports.createOrder = async (req, res, next) => {
     }
 
     const order = new Order({
-      user: req.userId || null,
+      user: req.user._id,
       fullName,
       email: email.toLowerCase(),
       phone,
@@ -77,7 +75,7 @@ exports.createOrder = async (req, res, next) => {
       total: Number(total),
       paymentMethod,
       paymentStatus: "pending",
-      orderStatus: "pending",
+      orderStatus: "processing",
     });
 
     await order.save();
@@ -89,32 +87,30 @@ exports.createOrder = async (req, res, next) => {
     });
   } catch (error) {
     console.error("CREATE ORDER ERROR:", error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// GET ALL ORDERS (admin)
-exports.getAllOrders = async (req, res, next) => {
+// GET ORDERS BY LOGGED-IN USER
+exports.getOrdersByUser = async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
-    res.status(200).json({
-      success: true,
-      message: "Order read successfullt.",
-      result: orders,
-    });
+    const userId = req.user._id;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid userId" });
+    }
+
+    const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
+    res.json({ success: true, orders });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
 // GET ORDER BY ID
-exports.getOrderById = async (req, res, next) => {
+exports.getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order)
@@ -124,29 +120,11 @@ exports.getOrderById = async (req, res, next) => {
 
     res.json({ success: true, order });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
-// GET ORDERS BY EMAIL
-exports.getOrdersByEmail = async (req, res) => {
-  try {
-    const email = req.params.email.toLowerCase();
-    const orders = await Order.find({ email });
-
-    res.json({ success: true, orders });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// UPDATE ORDER STATUS
+// UPDATE ORDER STATUS (Admin)
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -159,18 +137,37 @@ exports.updateOrderStatus = async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    res.status(400).json({
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.getMyOrders = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user ID" });
+    }
+
+    const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
 
-// CANCEL ORDER + RESTORE STOCK
 exports.cancelOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
-
     if (!order)
       return res
         .status(404)
@@ -187,10 +184,7 @@ exports.cancelOrder = async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -200,13 +194,11 @@ exports.deleteOrder = async (req, res) => {
     await Order.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
+// ESEWA INITIATE
 exports.initiateEsewaPayment = async (req, res) => {
   try {
     const { fullName, email, phone, address, items, subTotal, total } =
@@ -215,27 +207,20 @@ exports.initiateEsewaPayment = async (req, res) => {
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: "Cart is empty" });
     }
+
     const orderItems = [];
 
     for (const item of items) {
       const product = await Product.findById(item._id);
-
-      if (!product) {
+      if (!product || product.in_stuck < item.quantity) {
         return res.status(400).json({
           success: false,
-          message: `Product not found: ${item.productName}`,
-        });
-      }
-
-      if (product.in_stuck < item.quantity) {
-        return res.status(400).json({
-          success: false,
-          message: `Out of stock: ${item.productName}`,
+          message: `Product out of stock: ${item.productName}`,
         });
       }
 
       orderItems.push({
-        product: product._id,
+        product: item._id,
         productName: item.productName,
         price: item.price,
         quantity: item.quantity,
@@ -246,11 +231,12 @@ exports.initiateEsewaPayment = async (req, res) => {
     }
 
     const order = await Order.create({
+      user: req.user._id,
       fullName,
       email: email.toLowerCase(),
       phone,
       address,
-      items,
+      items: orderItems,
       subTotal,
       total,
       paymentMethod: "esewa",
@@ -258,12 +244,10 @@ exports.initiateEsewaPayment = async (req, res) => {
       orderStatus: "pending",
     });
 
-    //esewa signature
     const transaction_uuid = order._id.toString();
     const product_code = "EPAYTEST";
-
-    const amount = Number(subTotal).toFixed(2); // subtotal
-    const delivery = Number(total - subTotal).toFixed(2); // shipping
+    const amount = Number(subTotal).toFixed(2);
+    const delivery = Number(total - subTotal).toFixed(2);
     const total_amount = (Number(amount) + Number(delivery)).toFixed(2);
 
     const data = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
@@ -275,8 +259,8 @@ exports.initiateEsewaPayment = async (req, res) => {
     res.json({
       success: true,
       paymentData: {
-        total_amount, // must equal amount + delivery + tax + service
-        amount, // subtotal only
+        total_amount,
+        amount,
         tax_amount: "0",
         product_service_charge: "0",
         product_delivery_charge: delivery,
@@ -294,14 +278,12 @@ exports.initiateEsewaPayment = async (req, res) => {
   }
 };
 
-// eSewa Success Verification
+// ESEWA SUCCESS
 exports.esewaSuccess = async (req, res) => {
   try {
-    if (!req.query.data) {
+    if (!req.query.data)
       return res.status(400).json({ success: false, message: "Data missing" });
-    }
 
-    // Decode base64 safely
     let decoded;
     try {
       decoded = JSON.parse(
@@ -314,55 +296,26 @@ exports.esewaSuccess = async (req, res) => {
     }
 
     const { transaction_uuid } = decoded;
-
-    // Find order
     const order = await Order.findById(transaction_uuid);
     if (!order)
       return res
         .status(404)
         .json({ success: false, message: "Order not found" });
 
-    // If already completed, return order
-    if (order.paymentStatus === "completed") {
+    if (order.paymentStatus === "completed")
       return res.json({ success: true, order });
-    }
 
-    // Mark payment completed and processing
     order.paymentStatus = "completed";
-    order.orderStatus = "processing";
+    order.orderStatus = "delivered";
 
-    // Reduce stock for each item and collect update results
-    const stockUpdates = [];
     for (const item of order.items) {
-      try {
-        // Use item._id instead of item.product or item.product._id
-        const product = await Product.findById(item._id);
-        if (!product) {
-          console.log("Product not found:", item._id);
-          continue;
-        }
-
-        console.log("Before stock:", product.in_stuck);
-
-        await Product.findByIdAndUpdate(item._id, {
-          $inc: { in_stuck: -item.quantity },
-        });
-
-        const updated = await Product.findById(item._id);
-        console.log("After stock:", updated.in_stuck);
-      } catch (err) {
-        console.error(
-          "Error updating stock for product:",
-          item._id,
-          err.message
-        );
-      }
+      await Product.findByIdAndUpdate(item._id, {
+        $inc: { in_stuck: -item.quantity },
+      });
     }
 
     await order.save();
-
-    // Return order object with stockUpdates for debugging/frontend
-    res.json({ success: true, order, stockUpdates });
+    res.json({ success: true, order });
   } catch (error) {
     console.error("ESWEA SUCCESS ERROR:", error);
     res.status(500).json({ success: false, message: "Server error" });

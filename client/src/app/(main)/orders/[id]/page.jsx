@@ -16,7 +16,18 @@ const OrderConfirmationPage = () => {
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
-        const { data } = await axios.get(`${baseURL}/orders/${orderId}`);
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          alert("You must be logged in to view this order");
+          router.push("/login");
+          return;
+        }
+
+        const { data } = await axios.get(`${baseURL}/orders/${orderId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ send token
+          },
+        });
 
         if (data.success) {
           setOrder(data.order);
@@ -25,16 +36,14 @@ const OrderConfirmationPage = () => {
         }
       } catch (error) {
         console.error("Error fetching order:", error);
-        alert("Failed to load order details");
+        alert(error.response?.data?.message || "Failed to load order details");
       } finally {
         setLoading(false);
       }
     };
 
-    if (orderId) {
-      fetchOrderDetails();
-    }
-  }, [orderId]);
+    if (orderId) fetchOrderDetails();
+  }, [orderId, router]);
 
   if (loading) {
     return (
@@ -99,7 +108,9 @@ const OrderConfirmationPage = () => {
                   <p className="font-bold text-blue-600">Rs.{item.price}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-lg">Rs.{item.subTotal}</p>
+                  <p className="font-bold text-lg">
+                    Rs.{item.price * item.quantity}
+                  </p>
                 </div>
               </div>
             ))}

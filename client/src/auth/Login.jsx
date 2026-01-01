@@ -3,11 +3,15 @@
 import { baseURL } from "@/config/env";
 import axios from "axios";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useContext } from "react";
+import { AuthContext } from "@/context/AuthContext"; // <-- import AuthContext
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
+  const { login } = useContext(AuthContext); // <-- get login function
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,23 +21,23 @@ const Login = () => {
         password,
       });
 
-      // console.log(result.data);
+      const userData = {
+        name: result.data.data.firstName,
+        email: result.data.data.email,
+      };
+      const token = result.data.token;
 
-      // Save token
-      localStorage.setItem("accessToken", result.data.token);
-
-      // Save user data with firstName
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          name: result.data.data.firstName,
-          email: result.data.data.email,
-        })
-      );
+      // Call AuthContext login instead of writing to localStorage directly
+      login(userData, token);
 
       setEmail("");
       setPassword("");
-      window.location.href = "/";
+
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        router.push("/");
+      }
     } catch (error) {
       console.error("Login failed:", error);
       alert("Login failed. Please check your credentials.");
@@ -47,36 +51,33 @@ const Login = () => {
         <p className="text-center text-gray-500 mb-6">Login to your account</p>
 
         <form autoComplete="off" onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
             <input
               type="email"
               placeholder="Enter your email"
-              className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-black bg-[#F0E8E8]"
+              className="w-full px-4 py-2 rounded-lg focus:outline-gray-500 bg-[#F0E8E8]"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-sm font-medium mb-1">Password</label>
             <input
               type="password"
               placeholder="Enter your password"
-              className="w-full px-4 py-2 rounded-lg focus:outline-none bg-[#F0E8E8]"
+              className="w-full px-4 py-2 rounded-lg focus:outline-gray-500 bg-[#F0E8E8]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
 
-          {/* Button */}
           <button
             type="submit"
-            className="w-full bg-[#F0E8E8] text-black py-2 rounded-lg hover:bg-blue-600 transition"
+            className="w-full bg-[#F0E8E8] text-black py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300"
           >
             Login
           </button>

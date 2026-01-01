@@ -44,7 +44,7 @@ const Register = () => {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
-              className="w-full px-4 py-2  rounded-lg focus:outline-none bg-[#F0E8E8]"
+              className="w-full px-4 py-2  rounded-lg focus:outline-gray-500 bg-[#F0E8E8]"
             />
           </div>
           <div>
@@ -55,7 +55,7 @@ const Register = () => {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
-              className="w-full px-4 py-2  rounded-lg focus:outline-none bg-[#F0E8E8]"
+              className="w-full px-4 py-2  rounded-lg  focus:outline-gray-500 bg-[#F0E8E8]"
             />
           </div>
 
@@ -67,7 +67,7 @@ const Register = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2  rounded-lg focus:outline-none bg-[#F0E8E8]"
+              className="w-full px-4 py-2  rounded-lg  focus:outline-gray-500 bg-[#F0E8E8]"
             />
           </div>
 
@@ -79,7 +79,7 @@ const Register = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2  rounded-lg focus:outline-none bg-[#F0E8E8]"
+              className="w-full px-4 py-2  rounded-lg  focus:outline-gray-500 bg-[#F0E8E8]"
             />
           </div>
 
@@ -91,13 +91,13 @@ const Register = () => {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               required
-              className="w-full px-4 py-2  rounded-lg focus:outline-none bg-[#F0E8E8]"
+              className="w-full px-4 py-2  rounded-lg  focus:outline-gray-500 bg-[#F0E8E8]"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-[#F0E8E8] text-black py-2 rounded-lg hover:bg-blue-500 transition"
+            className="w-full bg-[#F0E8E8] text-black py-2 rounded-lg hover:bg-blue-500 hover:text-white transition-all duration-300"
           >
             Register
           </button>

@@ -1,65 +1,74 @@
 "use client";
-
 import { baseURL } from "@/config/env";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Plus from "@/UI/Plus";
 import Minus from "@/UI/Minus";
 import Back from "@/UI/Back";
-import { addToCart } from "@/utils/cart";
+import { CartContext } from "@/context/CartContext";
 
 const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [count, setCount] = useState(1);
-  const params = useParams();
-  const { id } = params;
+  const { id } = useParams();
   const router = useRouter();
+  const { addToCart } = useContext(CartContext);
 
   useEffect(() => {
+    if (!id) return;
     const fetchProductDetails = async () => {
       try {
         const res = await axios.get(`${baseURL}/products/read/${id}`);
         setProduct(res.data.result);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
       }
     };
-
-    if (id) fetchProductDetails();
+    fetchProductDetails();
   }, [id]);
 
-  // Safe increment and decrement functions
   const increment = () => {
-    if (product && count < product.in_stuck) {
-      setCount(count + 1);
-    }
+    if (product && count < product.in_stuck) setCount(count + 1);
+  };
+  const decrement = () => {
+    if (count > 1) setCount(count - 1);
   };
 
-  const decrement = () => {
-    if (count > 1) {
-      setCount(count - 1);
-    }
-  };
-  const buyNowHandler = (product, count) => {
-    const imageURL = product.image.startsWith("http")
-      ? product.image
-      : `${baseURL}/images/${product.image}`;
+  const buyNowHandler = () => {
+    if (!product) return;
 
     const buyNowCart = [
       {
         _id: product._id,
         productName: product.productName,
         price: product.price,
-        size: product.size,
-        image: imageURL,
-        in_stuck: product.in_stuck,
+        image: product.image.startsWith("http")
+          ? product.image
+          : `${baseURL}/images/${product.image}`,
+        size: product.size || "N/A",
         quantity: count,
       },
     ];
 
     localStorage.setItem("buyNowCart", JSON.stringify(buyNowCart));
     router.push("/checkout");
+  };
+
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    const cartProduct = {
+      ...product,
+      image: product.image.startsWith("http")
+        ? product.image
+        : `${baseURL}/images/${product.image}`,
+      quantity: count,
+      size: product.size || "N/A",
+    };
+
+    addToCart(cartProduct, count);
+    alert(`${product.productName} added to cart!`);
   };
 
   if (!product)
@@ -70,11 +79,14 @@ const ProductDetails = () => {
     );
 
   return (
-    <main className="max-w-[1400px] mx-auto flex-col items-center justify-center px-16 rounded-2xl my-10">
-      <div className="flex text-3xl font-bold">
-        <div className="p-1" onClick={() => router.push("/products")}>
+    <main className="max-w-[1400px] mx-auto flex-col items-center justify-center px-16 my-10">
+      <div className="flex text-3xl font-bold mb-5">
+        <span
+          className="py-2 pr-3 cursor-pointer"
+          onClick={() => router.back() || router.push("/")}
+        >
           <Back />
-        </div>
+        </span>
         <h1>Product Details</h1>
       </div>
 
@@ -83,7 +95,11 @@ const ProductDetails = () => {
           <div className="flex">
             <div className="h-[350px] w-[350px] m-10 bg-gray-200 flex items-center justify-center rounded-2xl">
               <img
-                src={product.image}
+                src={
+                  product.image.startsWith("http")
+                    ? product.image
+                    : `${baseURL}/images/${product.image}`
+                }
                 alt={product.productName}
                 className="h-full w-full object-cover rounded-2xl"
               />
@@ -99,12 +115,11 @@ const ProductDetails = () => {
                 Category: {product.category}
               </p>
               <p className="mt-2 text-xl font-semibold">
-                In Stock:{product.in_stuck}
+                In Stock: {product.in_stuck}
               </p>
 
               <div className="flex py-3 gap-2 text-xl font-semibold">
                 <h1 className="py-2">Quantity:</h1>
-
                 <button
                   className="px-2 rounded-xl bg-[#F0E8E8]"
                   onClick={decrement}
@@ -120,20 +135,16 @@ const ProductDetails = () => {
                 </button>
               </div>
 
-              <div className="flex gap-5">
+              <div className="flex gap-5 mt-3">
                 <button
                   className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
-                  onClick={() => {
-                    addToCart(product, count);
-                  }}
+                  onClick={handleAddToCart}
                 >
                   Add to Cart
                 </button>
                 <button
                   className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
-                  onClick={() => {
-                    buyNowHandler(product, count);
-                  }}
+                  onClick={buyNowHandler}
                 >
                   Buy Now
                 </button>

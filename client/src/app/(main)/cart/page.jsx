@@ -1,58 +1,19 @@
 "use client";
 
 import { baseURL } from "@/config/env";
-import React, { useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { useRouter } from "next/navigation";
 import Back from "@/UI/Back";
+import { CartContext } from "@/context/CartContext";
 
 const CartPage = () => {
-  const [cart, setCart] = useState(() => {
-    try {
-      const stored = localStorage.getItem("cart");
-      return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-      console.error("Failed to parse stored cart:", e);
-      return [];
-    }
-  });
   const router = useRouter();
+  const { cart, removeFromCart, updateQuantity, clearCart, getTotalItems } =
+    useContext(CartContext);
 
-  console.log("Cart Items:", cart);
-
-  // STEP 2: Save cart to localStorage whenever it changes
-  useEffect(() => {
-    // If cart is empty, remove it from storage to avoid keeping an empty array entry
-    if (!cart || cart.length === 0) {
-      localStorage.removeItem("cart");
-    } else {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    }
-  }, [cart]);
-
-  // STEP 3: Remove item from cart
-  const removeFromCart = (productId) => {
-    const updatedCart = cart.filter((item) => item._id !== productId);
-    setCart(updatedCart);
-  };
-
-  // STEP 4: Update quantity
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-
-    const updatedCart = cart.map((item) =>
-      item._id === productId ? { ...item, quantity: newQuantity } : item
-    );
-    setCart(updatedCart);
-  };
-
-  // STEP 5: Increase quantity by 1 (with stock validation)
   const increaseQuantity = (productId) => {
     const product = cart.find((item) => item._id === productId);
     if (product) {
-      // Check if quantity exceeds available stock
       if (product.quantity >= product.in_stuck) {
         alert(`Only ${product.in_stuck} items available in stock!`);
         return;
@@ -61,53 +22,36 @@ const CartPage = () => {
     }
   };
 
-  // STEP 6: Decrease quantity by 1
   const decreaseQuantity = (productId) => {
     const product = cart.find((item) => item._id === productId);
-    if (product) {
-      if (product.quantity > 1) {
-        updateQuantity(productId, product.quantity - 1);
-      }
+    if (product && product.quantity > 1) {
+      updateQuantity(productId, product.quantity - 1);
     }
   };
 
-  // STEP 7: Clear entire cart
-  const clearCart = () => {
-    if (confirm("Are you sure you want to clear the cart?")) {
-      setCart([]);
-      localStorage.removeItem("cart");
-    }
-  };
-
-  // STEP 8: Calculate total price
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
-  // STEP 9: Calculate total items
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  // STEP 10: Navigate to checkout
   const goToCheckout = () => {
     if (cart.length === 0) {
       alert("Your cart is empty!");
       return;
     }
+
+    // CLEAR any leftover buyNowCart
+    localStorage.removeItem("buyNowCart");
+
     router.push("/checkout");
   };
 
   return (
     <main className="max-w-[1400px] h-screen mx-auto px-16 py-8">
-      {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className=" flex text-3xl font-bold">
+        <h1 className="flex text-3xl font-bold">
           <span
             className="py-2 pr-3"
-            onClick={() => {
-              router.push("/");
-            }}
+            onClick={() => router.back() || router.push("/")}
           >
             <Back />
           </span>
@@ -123,7 +67,6 @@ const CartPage = () => {
         )}
       </div>
 
-      {/* Cart Content */}
       {cart.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-2xl text-gray-500 mb-4">Your cart is empty</p>
@@ -136,14 +79,13 @@ const CartPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
               <div
                 key={item._id}
-                className="flex gap-4 bg-white p-4 rounded-lg shadow-md"
+                className="flex gap-4 bg-white p-4 rounded-lg shadow-md cursor-pointer"
+                onClick={() => router.push(`/products/${item._id}`)}
               >
-                {/* Product Image */}
                 <div className="w-32 h-32 bg-gray-200 rounded-md shrink-0">
                   <img
                     src={
@@ -156,7 +98,6 @@ const CartPage = () => {
                   />
                 </div>
 
-                {/* Product Details */}
                 <div className="grow">
                   <h2 className="text-xl font-semibold mb-2">
                     {item.productName}
@@ -166,11 +107,13 @@ const CartPage = () => {
                     Stock: {item.in_stuck}
                   </p>
 
-                  {/* Quantity Controls */}
                   <div className="flex items-center gap-4 mt-4">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => decreaseQuantity(item._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          decreaseQuantity(item._id);
+                        }}
                         className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300"
                       >
                         -
@@ -179,7 +122,10 @@ const CartPage = () => {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => increaseQuantity(item._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          increaseQuantity(item._id);
+                        }}
                         className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300"
                       >
                         +
@@ -195,7 +141,6 @@ const CartPage = () => {
                   </div>
                 </div>
 
-                {/* Item Total */}
                 <div className="text-right">
                   <p className="text-xl font-bold">
                     Rs. {(item.price * item.quantity).toFixed(2)}
@@ -205,7 +150,6 @@ const CartPage = () => {
             ))}
           </div>
 
-          {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-md sticky top-4">
               <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
@@ -217,10 +161,6 @@ const CartPage = () => {
                   </span>
                   <span>Rs. {calculateTotal().toFixed(2)}</span>
                 </div>
-                {/* <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
-                  <span>Rs. 100.00</span>
-                </div> */}
               </div>
 
               <div className="border-t pt-4 mb-6">
@@ -238,7 +178,7 @@ const CartPage = () => {
               </button>
 
               <button
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/products")}
                 className="w-full py-3 mt-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold"
               >
                 Continue Shopping

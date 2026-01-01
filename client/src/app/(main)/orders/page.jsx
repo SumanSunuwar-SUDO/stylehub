@@ -10,8 +10,41 @@ const OrdersHistoryPage = () => {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState("");
 
+  // Fetch user orders
+  const fetchOrders = async (token) => {
+    try {
+      const res = await axios.get(`${baseURL}/orders/my-orders`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("ORDERS RESPONSE 👉", res.data);
+
+      if (Array.isArray(res.data.orders)) {
+        setOrders(res.data.orders);
+      } else {
+        setOrders([]);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+
+      // If token expired or invalid
+      if (error.response?.status === 401) {
+        localStorage.removeItem("accessToken");
+        router.push("/login");
+      } else {
+        alert("Failed to load orders");
+      }
+
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // On page load
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -19,41 +52,10 @@ const OrdersHistoryPage = () => {
       return;
     }
 
-    const user = localStorage.getItem("user");
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    const parsedUser = JSON.parse(user);
-    const email = parsedUser.email;
-
-    setUserEmail(email);
-    fetchOrders(email);
+    fetchOrders(token);
   }, []);
 
-  const fetchOrders = async (email) => {
-    try {
-      const res = await axios.get(`${baseURL}/orders/customer/${email}`);
-
-      console.log("ORDERS RESPONSE 👉", res.data);
-
-      if (Array.isArray(res.data)) {
-        setOrders(res.data);
-      } else if (Array.isArray(res.data.orders)) {
-        setOrders(res.data.orders);
-      } else {
-        setOrders([]);
-      }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      alert("Failed to load orders");
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Status badge color
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "pending":
@@ -71,19 +73,31 @@ const OrdersHistoryPage = () => {
     }
   };
 
+  // Cancel order
   const handleCancelOrder = async (orderId) => {
     if (!confirm("Are you sure you want to cancel this order?")) return;
 
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
     try {
-      await axios.put(`${baseURL}/orders/cancel/${orderId}`);
+      await axios.put(
+        `${baseURL}/orders/cancel/${orderId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
       alert("Order cancelled successfully!");
-      fetchOrders(userEmail);
+      fetchOrders(token);
     } catch (error) {
       console.error("Error cancelling order:", error);
       alert(error.response?.data?.message || "Failed to cancel order");
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="max-w-[1400px] mx-auto px-16 py-10 flex justify-center items-center min-h-screen">
@@ -115,91 +129,90 @@ const OrdersHistoryPage = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {Array.isArray(orders) &&
-            orders.map((order) => (
-              <div
-                key={order._id}
-                className="bg-white rounded-lg shadow-md overflow-hidden"
-              >
-                {/* Order Header */}
-                <div className="bg-gray-50 p-6 border-b">
-                  <div className="flex flex-wrap justify-between items-start gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Order ID</p>
-                      <p className="font-semibold">#{order._id}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Date</p>
-                      <p className="font-semibold">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Total</p>
-                      <p className="font-semibold text-lg">Rs.{order.total}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Status</p>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                          order.orderStatus
-                        )}`}
-                      >
-                        {order.orderStatus}
-                      </span>
-                    </div>
+          {orders.map((order) => (
+            <div
+              key={order._id}
+              className="bg-white rounded-lg shadow-md overflow-hidden"
+            >
+              {/* Header */}
+              <div className="bg-gray-50 p-6 border-b">
+                <div className="flex flex-wrap justify-between items-start gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Order ID</p>
+                    <p className="font-semibold">#{order._id}</p>
                   </div>
-                </div>
-
-                {/* Order Items */}
-                <div className="p-6">
-                  <div className="space-y-4">
-                    {order.items?.map((item, index) => (
-                      <div key={index} className="flex gap-4 items-center">
-                        <img
-                          src={
-                            item.image?.startsWith("http")
-                              ? item.image
-                              : `${baseURL}/images/${item.image}`
-                          }
-                          alt={item.productName}
-                          className="w-20 h-20 rounded object-cover"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{item.productName}</h3>
-                          <p className="text-sm text-gray-600">
-                            Size: {item.size} | Qty: {item.quantity}
-                          </p>
-                          <p className="text-sm font-semibold text-blue-600">
-                            Rs.{item.price} × {item.quantity} = Rs.
-                            {item.subTotal}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                  <div>
+                    <p className="text-sm text-gray-600">Date</p>
+                    <p className="font-semibold">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3 mt-6 pt-6 border-t">
-                    <button
-                      onClick={() => router.push(`/orders/${order._id}`)}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
+                  <div>
+                    <p className="text-sm text-gray-600">Total</p>
+                    <p className="font-semibold text-lg">Rs.{order.total}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Status</p>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                        order.orderStatus
+                      )}`}
                     >
-                      View Details
-                    </button>
-
-                    {order.orderStatus?.toLowerCase() === "pending" && (
-                      <button
-                        onClick={() => handleCancelOrder(order._id)}
-                        className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700"
-                      >
-                        Cancel Order
-                      </button>
-                    )}
+                      {order.orderStatus}
+                    </span>
                   </div>
                 </div>
               </div>
-            ))}
+
+              {/* Items */}
+              <div className="p-6 space-y-4">
+                {order.items?.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-4 items-center hover:bg-gray-100 p-4 rounded-xl transition"
+                  >
+                    <img
+                      src={
+                        item.image?.startsWith("http")
+                          ? item.image
+                          : `${baseURL}/images/${item.image}`
+                      }
+                      alt={item.productName}
+                      className="w-20 h-20 rounded object-cover"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{item.productName}</h3>
+                      <p className="text-sm text-gray-600">
+                        Size: {item.size} | Qty: {item.quantity}
+                      </p>
+                      <p className="text-sm font-semibold text-blue-600">
+                        Rs.{item.price} × {item.quantity} = Rs.{item.subTotal}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-6 border-t">
+                  <button
+                    onClick={() => router.push(`/orders/${order._id}`)}
+                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
+                  >
+                    View Details
+                  </button>
+
+                  {order.orderStatus?.toLowerCase() === "pending" && (
+                    <button
+                      onClick={() => handleCancelOrder(order._id)}
+                      className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </main>

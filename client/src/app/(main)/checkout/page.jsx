@@ -15,16 +15,27 @@ const CheckoutPage = () => {
   const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
 
+  // Redirect if not logged in
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) router.push("/login");
   }, []);
 
+  // Load cart / Buy Now items
   useEffect(() => {
-    const storedCart = localStorage.getItem("buyNowCart")
-      ? JSON.parse(localStorage.getItem("buyNowCart"))
-      : JSON.parse(localStorage.getItem("cart") || "[]");
-    setCart(storedCart);
+    const buyNowCart = localStorage.getItem("buyNowCart");
+    const normalCart = localStorage.getItem("cart");
+
+    if (buyNowCart) {
+      try {
+        setCart(JSON.parse(buyNowCart));
+      } catch (e) {
+        console.error("Failed to parse buyNowCart:", e);
+        setCart(normalCart ? JSON.parse(normalCart) : []);
+      }
+    } else {
+      setCart(normalCart ? JSON.parse(normalCart) : []);
+    }
   }, []);
 
   const subtotal = cart.reduce(
@@ -37,6 +48,13 @@ const CheckoutPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (cart.length === 0) return alert("Your cart is empty!");
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("You are not logged in!");
+      router.push("/login");
+      return;
+    }
 
     const orderData = {
       fullName,
@@ -77,9 +95,14 @@ const CheckoutPage = () => {
       if (paymentMethod === "cod") {
         const { data } = await axios.post(
           `${baseURL}/orders/create`,
-          orderData
+          orderData,
+          {
+            headers: { Authorization: `Bearer ${token}` }, // ✅ token added
+          }
         );
+
         if (data.success) {
+          // CLEAR BOTH CARTS
           localStorage.removeItem("cart");
           localStorage.removeItem("buyNowCart");
           router.push(`/orders/${data.orderId}`);
@@ -89,8 +112,12 @@ const CheckoutPage = () => {
       if (paymentMethod === "esewa") {
         const { data } = await axios.post(
           `${baseURL}/orders/esewa/initiate`,
-          orderData
+          orderData,
+          {
+            headers: { Authorization: `Bearer ${token}` }, // ✅ token added
+          }
         );
+
         if (data.success && data.paymentData) submitEsewaForm(data.paymentData);
         else alert(data.message || "Failed to initiate eSewa payment");
       }
@@ -103,13 +130,17 @@ const CheckoutPage = () => {
   return (
     <main className="max-w-[1400px] mx-auto px-16 py-10">
       <div className="flex items-center gap-3 text-[30px] font-bold mb-8">
-        <div className="cursor-pointer" onClick={() => router.push("/cart")}>
+        <span
+          className="py-2 pr-3 cursor-pointer"
+          onClick={() => router.back() || router.push("/")}
+        >
           <Back />
-        </div>
+        </span>
         <h1>Checkout</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        {/* Shipping Info */}
         <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-6">Shipping Information</h2>
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -156,9 +187,11 @@ const CheckoutPage = () => {
                   value="esewa"
                   checked={paymentMethod === "esewa"}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                />{" "}
-                Pay via eSewa
+                />
+                <img src="/images/esewa.png" alt="eSewa" className="w-8 h-8" />
+                <span>Pay via eSewa</span>
               </label>
+
               <label className="flex items-center gap-3 border px-4 py-3 rounded-lg cursor-pointer">
                 <input
                   type="radio"
@@ -166,8 +199,8 @@ const CheckoutPage = () => {
                   value="cod"
                   checked={paymentMethod === "cod"}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                />{" "}
-                Cash On Delivery
+                />
+                <span>Cash On Delivery</span>
               </label>
             </div>
 
@@ -180,6 +213,7 @@ const CheckoutPage = () => {
           </form>
         </div>
 
+        {/* Order Summary */}
         <div className="bg-white p-8 rounded-lg shadow-md sticky top-4">
           <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
           <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">

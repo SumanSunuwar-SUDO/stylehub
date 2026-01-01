@@ -1,31 +1,53 @@
 const { Router } = require("express");
 const {
   createOrder,
-  getAllOrders,
+  getMyOrders, // ✅ use this
   getOrderById,
-  getOrdersByEmail,
   updateOrderStatus,
   cancelOrder,
   deleteOrder,
   initiateEsewaPayment,
-  esewaSuccess, // add this
+  esewaSuccess,
 } = require("../controller/order.controller");
+
+const { isAuthenticated } = require("../middleware/isAuthenticated");
+const { isAuthorization } = require("../middleware/isAuthorization");
 
 const orderRouter = Router();
 
-// COD route
-orderRouter.route("/create").post(createOrder);
+// ================= USER ROUTES =================
 
-// eSewa initiation
-orderRouter.route("/esewa/initiate").post(initiateEsewaPayment);
-orderRouter.route("/esewa/success").get(esewaSuccess);
+// create order (COD)
+orderRouter.post("/create", isAuthenticated, createOrder);
 
-// other routes
-orderRouter.route("/all").get(getAllOrders);
-orderRouter.route("/:id").get(getOrderById);
-orderRouter.route("/customer/:email").get(getOrdersByEmail);
-orderRouter.route("/status/:id").put(updateOrderStatus);
-orderRouter.route("/cancel/:id").put(cancelOrder);
-orderRouter.route("/delete/:id").delete(deleteOrder);
+// my orders (logged-in user only)
+orderRouter.get("/my-orders", isAuthenticated, getMyOrders);
+
+// get single order
+orderRouter.get("/:id", isAuthenticated, getOrderById);
+
+// cancel order
+orderRouter.put("/cancel/:id", isAuthenticated, cancelOrder);
+
+// ================= PAYMENT ROUTES =================
+
+orderRouter.post("/esewa/initiate", isAuthenticated, initiateEsewaPayment);
+orderRouter.get("/esewa/success", esewaSuccess);
+
+// ================= ADMIN ROUTES =================
+
+orderRouter.put(
+  "/status/:id",
+  isAuthenticated,
+  isAuthorization(["admin"]),
+  updateOrderStatus
+);
+
+orderRouter.delete(
+  "/delete/:id",
+  isAuthenticated,
+  isAuthorization(["admin"]),
+  deleteOrder
+);
 
 module.exports = orderRouter;
