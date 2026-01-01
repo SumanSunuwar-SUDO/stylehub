@@ -25,7 +25,7 @@ const OrderConfirmationPage = () => {
 
         const { data } = await axios.get(`${baseURL}/orders/${orderId}`, {
           headers: {
-            Authorization: `Bearer ${token}`, // ✅ send token
+            Authorization: `Bearer ${token}`,
           },
         });
 
