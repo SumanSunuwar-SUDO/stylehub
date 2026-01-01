@@ -8,6 +8,7 @@ const {
   deleteOrder,
   initiateEsewaPayment,
   esewaSuccess,
+  getAllOrders,
 } = require("../controller/order.controller");
 
 const { isAuthenticated } = require("../middleware/isAuthenticated");
@@ -22,6 +23,13 @@ orderRouter.post("/create", isAuthenticated, createOrder);
 
 // my orders (logged-in user only)
 orderRouter.get("/my-orders", isAuthenticated, getMyOrders);
+
+orderRouter.get(
+  "/all",
+  isAuthenticated,
+  isAuthorization(["admin"]),
+  getAllOrders
+);
 
 // get single order
 orderRouter.get("/:id", isAuthenticated, getOrderById);

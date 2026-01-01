@@ -24,6 +24,7 @@ const Login = () => {
       const userData = {
         name: result.data.data.firstName,
         email: result.data.data.email,
+        role: result.data.data.role,
       };
       const token = result.data.token;
 
@@ -33,10 +34,14 @@ const Login = () => {
       setEmail("");
       setPassword("");
 
-      if (window.history.length > 1) {
-        router.back();
+      if (userData.role === "admin") {
+        router.push("/admin");
       } else {
-        router.push("/");
+        if (window.history.length > 1) {
+          router.back();
+        } else {
+          router.push("/");
+        }
       }
     } catch (error) {
       console.error("Login failed:", error);

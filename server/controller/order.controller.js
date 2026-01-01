@@ -321,3 +321,21 @@ exports.esewaSuccess = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+exports.getAllOrders = async (req, res) => {
+  try {
+    const order = await Order.find()
+      .sort({ createdAt: -1 })
+      .populate("user", "name email");
+    res.status(200).json({
+      success: true,
+      message: "All order found successfully.",
+      result: order,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

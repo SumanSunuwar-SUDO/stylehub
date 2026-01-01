@@ -13,12 +13,29 @@ const Page = () => {
   useEffect(() => {
     const getOrders = async () => {
       try {
-        const res = await axios.get(`${baseURL}/orders/all`);
-        setOrders(res.data.result || []);
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        const res = await axios.get(`${baseURL}/orders/all`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Sort orders by newest first
+        const sortedOrders = (res.data.result || []).sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setOrders(sortedOrders);
       } catch (error) {
-        console.log(error);
+        console.log(
+          "Error fetching orders:",
+          error.response?.data || error.message
+        );
       }
     };
+
     getOrders();
   }, []);
 
@@ -73,11 +90,12 @@ const Page = () => {
               ) : (
                 orders.map((order, index) => {
                   const createdAt = new Date(order.createdAt);
-                  const formattedDate = createdAt.toLocaleDateString("en-US"); // 12/30/2025
+                  const formattedDate = createdAt.toLocaleDateString("en-US");
                   const formattedTime = createdAt.toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
                   });
+
                   return (
                     <tr
                       key={order._id}
@@ -94,24 +112,106 @@ const Page = () => {
                         {order.paymentMethod} ({order.paymentStatus})
                       </td>
                       <td className="px-4 py-3 capitalize">
-                        <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700">
-                          {order.orderStatus}
+                        <span
+                          className={`px-2 py-1 text-xs rounded ${
+                            order.orderStatus === "delivered"
+                              ? "bg-green-100 text-green-700"
+                              : order.orderStatus === "processing"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {order.paymentMethod === "esewa"
+                            ? "delivered"
+                            : order.orderStatus}
                         </span>
                       </td>
-                      <td className="px-4 py-3 ">
+                      <td className="px-4 py-3">
                         {formattedDate} {formattedTime}
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 flex gap-2">
+                        {/* View Button */}
                         <button
                           onClick={() =>
                             router.push(`/admin/orders/${order._id}`)
                           }
-                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                          className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
                         >
-                          Change
+                          View
                         </button>
+
+                        {/* Change Status Button */}
+                        {order.paymentMethod !== "esewa" &&
+                          (order.isEditing ? (
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={order.orderStatus}
+                                onChange={(e) =>
+                                  setOrders((prev) =>
+                                    prev.map((o) =>
+                                      o._id === order._id
+                                        ? { ...o, orderStatus: e.target.value }
+                                        : o
+                                    )
+                                  )
+                                }
+                                className="border rounded px-2 py-1 text-sm"
+                              >
+                                <option value="processing">Processing</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const token =
+                                      localStorage.getItem("accessToken");
+                                    await axios.put(
+                                      `${baseURL}/orders/status/${order._id}`,
+                                      { status: order.orderStatus },
+                                      {
+                                        headers: {
+                                          Authorization: `Bearer ${token}`,
+                                        },
+                                      }
+                                    );
+                                    setOrders((prev) =>
+                                      prev.map((o) =>
+                                        o._id === order._id
+                                          ? { ...o, isEditing: false }
+                                          : o
+                                      )
+                                    );
+                                  } catch (err) {
+                                    console.log(
+                                      "Error updating status:",
+                                      err.response?.data || err.message
+                                    );
+                                  }
+                                }}
+                                className="px-2 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                setOrders((prev) =>
+                                  prev.map((o) =>
+                                    o._id === order._id
+                                      ? { ...o, isEditing: true }
+                                      : o
+                                  )
+                                )
+                              }
+                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                              Change
+                            </button>
+                          ))}
                       </td>
                     </tr>
                   );
