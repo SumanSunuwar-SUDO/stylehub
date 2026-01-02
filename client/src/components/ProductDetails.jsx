@@ -1,4 +1,5 @@
 "use client";
+
 import { baseURL } from "@/config/env";
 import axios from "axios";
 import React, { useEffect, useState, useContext } from "react";
@@ -11,64 +12,83 @@ import { CartContext } from "@/context/CartContext";
 const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [count, setCount] = useState(1);
+  const [selectedSize, setSelectedSize] = useState(null);
+
   const { id } = useParams();
   const router = useRouter();
   const { addToCart } = useContext(CartContext);
 
+  // Fetch product details
   useEffect(() => {
     if (!id) return;
+
     const fetchProductDetails = async () => {
       try {
         const res = await axios.get(`${baseURL}/products/read/${id}`);
-        setProduct(res.data.result);
+        const data = res.data.result;
+        setProduct(data);
+
+        // Select first available size or default
+        if (data?.sizes?.length > 0) {
+          const firstAvailable = data.sizes.find((s) => s.quantity > 0);
+          setSelectedSize(firstAvailable || data.sizes[0]);
+        }
       } catch (err) {
         console.error(err);
       }
     };
+
     fetchProductDetails();
   }, [id]);
 
+  // Quantity handlers
   const increment = () => {
-    if (product && count < product.in_stuck) setCount(count + 1);
+    if (selectedSize && count < selectedSize.quantity) setCount(count + 1);
   };
   const decrement = () => {
     if (count > 1) setCount(count - 1);
   };
 
+  // Add to cart
+  const handleAddToCart = () => {
+    if (!product || !selectedSize) return;
+
+    addToCart(
+      {
+        _id: product._id,
+        productName: product.productName,
+        price: selectedSize.price,
+        size: selectedSize.size,
+        in_stuck: selectedSize.quantity, // <-- important
+        image: product.image.startsWith("http")
+          ? product.image
+          : `${baseURL}/images/${product.image}`,
+      },
+      count
+    );
+
+    alert(`${product.productName} (${selectedSize.size}) added to cart!`);
+  };
+
+  // Buy now
   const buyNowHandler = () => {
-    if (!product) return;
+    if (!product || !selectedSize) return;
 
     const buyNowCart = [
       {
         _id: product._id,
         productName: product.productName,
-        price: product.price,
+        price: selectedSize.price,
+        size: selectedSize.size,
+        quantity: count,
         image: product.image.startsWith("http")
           ? product.image
           : `${baseURL}/images/${product.image}`,
-        size: product.size || "N/A",
-        quantity: count,
       },
     ];
 
     localStorage.setItem("buyNowCart", JSON.stringify(buyNowCart));
     router.push("/checkout");
-  };
-
-  const handleAddToCart = () => {
-    if (!product) return;
-
-    const cartProduct = {
-      ...product,
-      image: product.image.startsWith("http")
-        ? product.image
-        : `${baseURL}/images/${product.image}`,
-      quantity: count,
-      size: product.size || "N/A",
-    };
-
-    addToCart(cartProduct, count);
-    alert(`${product.productName} added to cart!`);
   };
 
   if (!product)
@@ -80,6 +100,7 @@ const ProductDetails = () => {
 
   return (
     <main className="max-w-[1400px] mx-auto flex-col items-center justify-center px-16 my-10">
+      {/* Header */}
       <div className="flex text-3xl font-bold mb-5">
         <span
           className="py-2 pr-3 cursor-pointer"
@@ -90,9 +111,11 @@ const ProductDetails = () => {
         <h1>Product Details</h1>
       </div>
 
+      {/* Product container */}
       <div className="flex justify-center">
         <div className="w-[1000px] flex-col bg-white rounded-2xl mt-5 shadow-2xl">
-          <div className="flex">
+          <div className="flex flex-col lg:flex-row">
+            {/* Product Image */}
             <div className="h-[350px] w-[350px] m-10 bg-gray-200 flex items-center justify-center rounded-2xl">
               <img
                 src={
@@ -105,46 +128,80 @@ const ProductDetails = () => {
               />
             </div>
 
-            <div className="mx-5 mt-10">
+            {/* Product Info */}
+            <div className="mx-5 mt-10 flex-1">
               <h1 className="mt-4 text-2xl font-bold">{product.productName}</h1>
-              <p className="mt-2 text-xl font-semibold">
-                Price: Rs.{product.price}
-              </p>
-              <p className="mt-2 text-xl font-semibold">Size: {product.size}</p>
-              <p className="mt-2 text-xl font-semibold">
-                Category: {product.category}
-              </p>
-              <p className="mt-2 text-xl font-semibold">
-                In Stock: {product.in_stuck}
+
+              {/* Category */}
+              <p className="mt-3 text-xl font-medium">
+                Category: {product.gender || product.category || "N/A"}
               </p>
 
-              <div className="flex py-3 gap-2 text-xl font-semibold">
-                <h1 className="py-2">Quantity:</h1>
+              {/* Size Selection */}
+              {product.sizes && product.sizes.length > 0 && (
+                <div className="my-2 text-xl font-medium">
+                  <label className="font-semibold">Select Size: </label>
+                  <select
+                    value={selectedSize?.size || ""}
+                    onChange={(e) => {
+                      const newSize = product.sizes.find(
+                        (s) => s.size === e.target.value
+                      );
+                      setSelectedSize(newSize);
+                      setCount(1); // reset quantity on size change
+                    }}
+                    className="w-24 px-2 py-1 border rounded mt-1"
+                  >
+                    {product.sizes.map((s) => (
+                      <option
+                        key={s.size}
+                        value={s.size}
+                        disabled={s.quantity === 0}
+                      >
+                        {s.size} {s.quantity === 0 ? "(Out of stock)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedSize && (
+                    <p className="mt-2 text-xl font-semibold">
+                      Price: Rs.{selectedSize.price}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Quantity */}
+              <div className="flex gap-2 text-xl font-semibold items-center mt-2">
+                <h1>Quantity:</h1>
                 <button
-                  className="px-2 rounded-xl bg-[#F0E8E8]"
+                  className="px-2 py-2 rounded-xl bg-[#F0E8E8]"
                   onClick={decrement}
                 >
                   <Minus />
                 </button>
-                <h1 className="p-2">{count}</h1>
+                <span className="px-2">{count}</span>
                 <button
-                  className="px-2 rounded-xl bg-[#F0E8E8]"
+                  className="px-2 py-2 rounded-xl bg-[#F0E8E8]"
                   onClick={increment}
+                  disabled={selectedSize && count >= selectedSize.quantity}
                 >
                   <Plus />
                 </button>
               </div>
 
+              {/* Buttons */}
               <div className="flex gap-5 mt-3">
                 <button
                   className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
                   onClick={handleAddToCart}
+                  disabled={!selectedSize || selectedSize.quantity === 0}
                 >
                   Add to Cart
                 </button>
                 <button
                   className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
                   onClick={buyNowHandler}
+                  disabled={!selectedSize || selectedSize.quantity === 0}
                 >
                   Buy Now
                 </button>
@@ -152,7 +209,8 @@ const ProductDetails = () => {
             </div>
           </div>
 
-          <div className="px-15 pb-10 text-[20px] font-semibold">
+          {/* Description */}
+          <div className="px-10 pb-10 text-[20px] font-semibold">
             Description:
             <p className="text-xl font-normal mt-2 text-justify">
               {product.description}

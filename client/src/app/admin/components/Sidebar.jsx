@@ -14,7 +14,6 @@ export default function Sidebar() {
     { label: "Products", href: "/admin/products" },
     { label: "Orders", href: "/admin/orders" },
     { label: "Add Product", href: "/admin/addproduct" },
-    { label: "Payments", href: "/admin/payments" },
   ];
 
   const handleLogout = () => {

@@ -3,7 +3,7 @@ const UserModel = require("../schema/user.model");
 exports.isAuthorization = (roles) => {
   return async (req, res, next) => {
     try {
-      const userId = req.user._id; // ✅ use req.user._id from auth middleware
+      const userId = req.user._id; // use req.user._id from auth middleware
       const user = await UserModel.findById(userId);
 
       if (!user) {

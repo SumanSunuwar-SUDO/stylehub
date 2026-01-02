@@ -1,7 +1,25 @@
 const ProductModel = require("../schema/product.model");
 
+// CREATE PRODUCT
 exports.createProduct = async (req, res, next) => {
   try {
+    const { mainCategory, gender, subCategory, sizes } = req.body;
+
+    // Basic validation
+    if (!mainCategory || !gender || !subCategory) {
+      return res.status(400).json({
+        success: false,
+        message: "Main category, gender, and subcategory are required.",
+      });
+    }
+
+    if (!sizes || !Array.isArray(sizes) || sizes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one size with quantity and price is required.",
+      });
+    }
+
     let product = await ProductModel.create(req.body);
 
     res.status(201).json({
@@ -17,13 +35,14 @@ exports.createProduct = async (req, res, next) => {
   }
 };
 
+// READ ALL PRODUCTS
 exports.readAllProduct = async (req, res, next) => {
   try {
     let product = await ProductModel.find();
 
     res.status(200).json({
       success: true,
-      message: "Product read successfully.",
+      message: "Products retrieved successfully.",
       result: product,
     });
   } catch (error) {
@@ -34,13 +53,21 @@ exports.readAllProduct = async (req, res, next) => {
   }
 };
 
+// READ SPECIFIC PRODUCT
 exports.readSpecific = async (req, res, next) => {
   try {
     let product = await ProductModel.findById(req.params.id);
 
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
     res.status(200).json({
       success: true,
-      message: "Specific product read successfully.",
+      message: "Specific product retrieved successfully.",
       result: product,
     });
   } catch (error) {
@@ -51,13 +78,30 @@ exports.readSpecific = async (req, res, next) => {
   }
 };
 
+// UPDATE PRODUCT
 exports.updateProduct = async (req, res, next) => {
   try {
+    const { mainCategory, gender, subCategory, sizes } = req.body;
+
+    if (sizes && (!Array.isArray(sizes) || sizes.length === 0)) {
+      return res.status(400).json({
+        success: false,
+        message: "Sizes array cannot be empty.",
+      });
+    }
+
     let product = await ProductModel.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
     );
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -72,9 +116,17 @@ exports.updateProduct = async (req, res, next) => {
   }
 };
 
+// DELETE PRODUCT
 exports.deleteProduct = async (req, res, next) => {
   try {
     let product = await ProductModel.findByIdAndDelete(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
 
     res.status(200).json({
       success: true,

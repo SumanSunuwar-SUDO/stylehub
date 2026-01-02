@@ -6,22 +6,26 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: [true, "Product name required."],
     },
-    price: {
-      type: Number,
-      required: [true, "Price required"],
-    },
-    size: {
+    mainCategory: {
       type: String,
-      required: [true, "Size is required"],
+      required: [true, "Main category is required."],
     },
-    in_stuck: {
-      type: Number,
-      required: [true, "Stock value is required"],
-    },
-    category: {
+    gender: {
       type: String,
-      required: [true, "Category is required"],
+      required: [true, "Gender is required."],
+      enum: ["Men", "Women"],
     },
+    subCategory: {
+      type: String,
+      required: [true, "Subcategory is required."],
+    },
+    sizes: [
+      {
+        size: { type: String, required: true },
+        quantity: { type: Number, required: true },
+        price: { type: Number, required: true },
+      },
+    ],
     image: {
       type: String,
       required: [true, "Image field is required."],

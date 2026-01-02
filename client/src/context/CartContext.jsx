@@ -6,51 +6,64 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
 
-  // Load cart from localStorage initially
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) setCart(JSON.parse(storedCart));
   }, []);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // Functions to update cart
+  // Add to cart
   const addToCart = (product, quantity = 1) => {
     setCart((prevCart) => {
-      const existingProduct = prevCart.find((item) => item._id === product._id);
+      const existingItem = prevCart.find(
+        (item) => item._id === product._id && item.size === product.size
+      );
 
-      if (existingProduct) {
-        // Stock check
-        if (existingProduct.quantity + quantity > product.in_stuck) {
+      if (existingItem) {
+        if (existingItem.quantity + quantity > existingItem.in_stuck) {
           alert(
-            `Cannot add more than ${product.in_stuck} items for this product.`
+            `Cannot add more than ${existingItem.in_stuck} items for this size!`
           );
           return prevCart;
-        } else {
-          return prevCart.map((item) =>
-            item._id === product._id
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
-          );
         }
+        return prevCart.map((item) =>
+          item._id === product._id && item.size === product.size
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
       } else {
-        return [...prevCart, { ...product, quantity: quantity }];
+        if (quantity > product.in_stuck) {
+          alert(
+            `Cannot add more than ${product.in_stuck} items for this size!`
+          );
+          return prevCart;
+        }
+        return [...prevCart, { ...product, quantity }];
       }
     });
   };
 
-  const removeFromCart = (productId) => {
-    setCart((prev) => prev.filter((item) => item._id !== productId));
-  };
-
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (productId, quantity, size) => {
     setCart((prev) =>
       prev.map((item) =>
-        item._id === productId ? { ...item, quantity } : item
+        item._id === productId && item.size === size
+          ? quantity > item.in_stuck
+            ? (() => {
+                alert(`Only ${item.in_stuck} items available for this size!`);
+                return item;
+              })()
+            : { ...item, quantity }
+          : item
       )
+    );
+  };
+
+  const removeFromCart = (productId, size) => {
+    setCart((prev) =>
+      prev.filter((item) => !(item._id === productId && item.size === size))
     );
   };
 

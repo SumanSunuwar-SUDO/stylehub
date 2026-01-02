@@ -21,21 +21,31 @@ const CheckoutPage = () => {
     if (!token) router.push("/login");
   }, []);
 
-  // Load cart / Buy Now items
+  // Load cart / Buy Now items and remove duplicates
   useEffect(() => {
     const buyNowCart = localStorage.getItem("buyNowCart");
     const normalCart = localStorage.getItem("cart");
+    let loadedCart = [];
 
     if (buyNowCart) {
       try {
-        setCart(JSON.parse(buyNowCart));
+        loadedCart = JSON.parse(buyNowCart);
       } catch (e) {
         console.error("Failed to parse buyNowCart:", e);
-        setCart(normalCart ? JSON.parse(normalCart) : []);
+        loadedCart = normalCart ? JSON.parse(normalCart) : [];
       }
     } else {
-      setCart(normalCart ? JSON.parse(normalCart) : []);
+      loadedCart = normalCart ? JSON.parse(normalCart) : [];
     }
+
+    // Remove duplicates based on _id + size
+    const uniqueCart = Array.from(
+      new Map(
+        loadedCart.map((item) => [`${item._id}-${item.size || "N/A"}`, item])
+      ).values()
+    );
+
+    setCart(uniqueCart);
   }, []);
 
   const subtotal = cart.reduce(
@@ -97,14 +107,14 @@ const CheckoutPage = () => {
           `${baseURL}/orders/create`,
           orderData,
           {
-            headers: { Authorization: `Bearer ${token}` }, // ✅ token added
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
         if (data.success) {
-          // CLEAR BOTH CARTS
           localStorage.removeItem("cart");
           localStorage.removeItem("buyNowCart");
+          setCart([]);
           router.push(`/orders/${data.orderId}`);
         }
       }
@@ -114,7 +124,7 @@ const CheckoutPage = () => {
           `${baseURL}/orders/esewa/initiate`,
           orderData,
           {
-            headers: { Authorization: `Bearer ${token}` }, // ✅ token added
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
@@ -217,8 +227,8 @@ const CheckoutPage = () => {
         <div className="bg-white p-8 rounded-lg shadow-md sticky top-4">
           <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
           <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
-            {cart.map((item) => (
-              <div key={item._id} className="flex gap-3">
+            {cart.map((item, index) => (
+              <div key={`${item._id}-${index}`} className="flex gap-3">
                 <img
                   src={
                     item.image.startsWith("http")

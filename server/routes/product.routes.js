@@ -6,13 +6,35 @@ const {
   updateProduct,
   deleteProduct,
 } = require("../controller/product.controller");
+const { isAuthenticated } = require("../middleware/isAuthenticated");
+const { isAuthorization } = require("../middleware/isAuthorization");
 
 const productRouter = Router();
 
-productRouter.route("/create").post(createProduct);
-productRouter.route("/read").get(readAllProduct);
-productRouter.route("/read/:id").get(readSpecific);
-productRouter.route("/update/:id").patch(updateProduct);
-productRouter.route("/delete/:id").delete(deleteProduct);
+// Create a new product (only admin)
+productRouter.post(
+  "/create",
+  isAuthenticated,
+  isAuthorization("admin"),
+  createProduct
+);
+productRouter.get("/read", readAllProduct);
+productRouter.get("/read/:id", readSpecific);
+
+// Update a product by ID (only admin)
+productRouter.patch(
+  "/update/:id",
+  isAuthenticated,
+  isAuthorization("admin"),
+  updateProduct
+);
+
+// Delete a product by ID (only admin)
+productRouter.delete(
+  "/delete/:id",
+  isAuthenticated,
+  isAuthorization("admin"),
+  deleteProduct
+);
 
 module.exports = productRouter;

@@ -7,6 +7,7 @@ import { CartContext } from "@/context/CartContext";
 
 const Product = () => {
   const [products, setProducts] = useState([]);
+  const [selectedSizes, setSelectedSizes] = useState({}); // track selected size per product
   const router = useRouter();
   const { addToCart } = useContext(CartContext);
 
@@ -15,6 +16,16 @@ const Product = () => {
       try {
         const response = await axios.get(`${baseURL}/products/read`);
         setProducts(response.data.result || []);
+
+        // Set default selected size for each product
+        const defaultSizes = {};
+        (response.data.result || []).forEach((product) => {
+          if (product.sizes?.length > 0) {
+            const available = product.sizes.find((s) => s.quantity > 0);
+            defaultSizes[product._id] = available || product.sizes[0];
+          }
+        });
+        setSelectedSizes(defaultSizes);
       } catch (error) {
         console.log(error);
       }
@@ -24,17 +35,46 @@ const Product = () => {
 
   const goToProductDetails = (id) => router.push(`/products/${id}`);
 
-  const buyNowHandler = (product, count = 1) => {
+  const handleAddToCart = (product) => {
+    const selectedSize = selectedSizes[product._id];
+    if (!selectedSize || selectedSize.quantity === 0) {
+      alert("Please select a size that is in stock.");
+      return;
+    }
+
+    addToCart(
+      {
+        _id: product._id,
+        productName: product.productName,
+        price: selectedSize.price,
+        size: selectedSize.size,
+        in_stuck: selectedSize.quantity,
+        image: product.image.startsWith("http")
+          ? product.image
+          : `${baseURL}/images/${product.image}`,
+      },
+      1
+    );
+  };
+
+  const buyNowHandler = (product) => {
+    const selectedSize = selectedSizes[product._id];
+    if (!selectedSize || selectedSize.quantity === 0) {
+      alert("Please select a size that is in stock.");
+      return;
+    }
+
     const buyNowCart = [
       {
         _id: product._id,
         productName: product.productName,
-        price: product.price,
+        price: selectedSize.price,
+        size: selectedSize.size,
+        quantity: 1,
+        in_stuck: selectedSize.quantity,
         image: product.image.startsWith("http")
           ? product.image
           : `${baseURL}/images/${product.image}`,
-        size: product.size || "N/A",
-        quantity: count,
       },
     ];
 
@@ -50,54 +90,93 @@ const Product = () => {
 
       <div className="flex justify-start gap-10 flex-wrap pl-20 mt-10">
         {products.length > 0 ? (
-          products.map((item) => (
-            <div
-              key={item._id}
-              className="w-[250px] rounded-md p-5 shadow-md bg-white cursor-pointer"
-              onClick={() => goToProductDetails(item._id)}
-            >
-              <div className="h-[200px] bg-gray-200 flex items-center justify-center rounded-md">
-                <img
-                  src={
-                    item.image.startsWith("http")
-                      ? item.image
-                      : `${baseURL}/images/${item.image}`
-                  }
-                  alt={item.productName}
-                  className="h-full w-full object-cover rounded-md"
-                />
-              </div>
+          products.map((item) => {
+            const selected = selectedSizes[item._id];
 
-              <div className="flex justify-between items-center py-2">
+            return (
+              <div
+                key={item._id}
+                className="w-[250px] rounded-md p-5 shadow-md bg-white cursor-pointer"
+                onClick={() => goToProductDetails(item._id)}
+              >
+                {/* Product Image */}
+                <div className="h-[200px] bg-gray-200 flex items-center justify-center rounded-md">
+                  <img
+                    src={
+                      item.image.startsWith("http")
+                        ? item.image
+                        : `${baseURL}/images/${item.image}`
+                    }
+                    alt={item.productName}
+                    className="h-full w-full object-cover rounded-md"
+                  />
+                </div>
+
+                {/* Product Name */}
                 <h1 className="mt-2 font-semibold text-lg">
                   {item.productName}
                 </h1>
-                <p className="text-lg pt-2">Rs.{item.price}</p>
-              </div>
 
-              <div className="flex justify-between items-center">
-                <button
-                  className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    addToCart(item);
-                  }}
-                >
-                  Add To Cart
-                </button>
+                {/* Size Selection */}
+                {item.sizes && item.sizes.length > 0 && (
+                  <div className="mt-2 flex justify-between items-center">
+                    <select
+                      value={selected?.size || ""}
+                      onChange={(e) =>
+                        setSelectedSizes({
+                          ...selectedSizes,
+                          [item._id]: item.sizes.find(
+                            (s) => s.size === e.target.value
+                          ),
+                        })
+                      }
+                      onClick={(e) => e.stopPropagation()}
+                      className="border w-[60px] px-2 py-1 rounded text-sm font-medium"
+                    >
+                      {item.sizes.map((s) => (
+                        <option
+                          key={s.size}
+                          value={s.size}
+                          disabled={s.quantity === 0}
+                        >
+                          {s.size} {s.quantity === 0 ? "(Out of stock)" : ""}
+                        </option>
+                      ))}
+                    </select>
 
-                <button
-                  className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    buyNowHandler(item);
-                  }}
-                >
-                  Buy Now
-                </button>
+                    {selected && (
+                      <p className="mt-1 text-sm font-medium">
+                        Price: Rs.{selected.price}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Buttons */}
+                <div className="flex justify-between items-center mt-3">
+                  <button
+                    className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(item);
+                    }}
+                  >
+                    Add To Cart
+                  </button>
+
+                  <button
+                    className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      buyNowHandler(item);
+                    }}
+                  >
+                    Buy Now
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <p>No products found.</p>
         )}

@@ -11,21 +11,26 @@ const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalItems } =
     useContext(CartContext);
 
-  const increaseQuantity = (productId) => {
-    const product = cart.find((item) => item._id === productId);
-    if (product) {
-      if (product.quantity >= product.in_stuck) {
-        alert(`Only ${product.in_stuck} items available in stock!`);
-        return;
-      }
-      updateQuantity(productId, product.quantity + 1);
+  // Increase quantity for a specific product-size combination
+  const increaseQuantity = (productId, size) => {
+    const product = cart.find(
+      (item) => item._id === productId && item.size === size
+    );
+    if (!product) return;
+
+    if (product.quantity >= product.in_stuck) {
+      alert(`Only ${product.in_stuck} items available in stock!`);
+      return;
     }
+    updateQuantity(productId, product.quantity + 1, size);
   };
 
-  const decreaseQuantity = (productId) => {
-    const product = cart.find((item) => item._id === productId);
+  const decreaseQuantity = (productId, size) => {
+    const product = cart.find(
+      (item) => item._id === productId && item.size === size
+    );
     if (product && product.quantity > 1) {
-      updateQuantity(productId, product.quantity - 1);
+      updateQuantity(productId, product.quantity - 1, size);
     }
   };
 
@@ -39,14 +44,13 @@ const CartPage = () => {
       return;
     }
 
-    // CLEAR any leftover buyNowCart
-    localStorage.removeItem("buyNowCart");
-
+    localStorage.removeItem("buyNowCart"); // clear leftover buyNowCart
     router.push("/checkout");
   };
 
   return (
     <main className="max-w-[1400px] h-screen mx-auto px-16 py-8">
+      {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="flex text-3xl font-bold">
           <span
@@ -82,10 +86,11 @@ const CartPage = () => {
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
               <div
-                key={item._id}
+                key={`${item._id}-${item.size}`} // unique key per size
                 className="flex gap-4 bg-white p-4 rounded-lg shadow-md cursor-pointer"
                 onClick={() => router.push(`/products/${item._id}`)}
               >
+                {/* Product Image */}
                 <div className="w-32 h-32 bg-gray-200 rounded-md shrink-0">
                   <img
                     src={
@@ -98,21 +103,21 @@ const CartPage = () => {
                   />
                 </div>
 
+                {/* Product Info */}
                 <div className="grow">
                   <h2 className="text-xl font-semibold mb-2">
                     {item.productName}
                   </h2>
+                  <p className="text-gray-600 mb-2">Size: {item.size}</p>
                   <p className="text-gray-600 mb-2">Rs. {item.price}</p>
-                  <p className="text-sm text-gray-500">
-                    Stock: {item.in_stuck}
-                  </p>
 
-                  <div className="flex items-center gap-4 mt-4">
+                  {/* Quantity controls */}
+                  <div className="flex items-center gap-4 mt-2">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          decreaseQuantity(item._id);
+                          decreaseQuantity(item._id, item.size);
                         }}
                         className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300"
                       >
@@ -124,7 +129,7 @@ const CartPage = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          increaseQuantity(item._id);
+                          increaseQuantity(item._id, item.size);
                         }}
                         className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300"
                       >
@@ -133,7 +138,10 @@ const CartPage = () => {
                     </div>
 
                     <button
-                      onClick={() => removeFromCart(item._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFromCart(item._id, item.size);
+                      }}
                       className="text-red-500 hover:text-red-700 font-medium"
                     >
                       Remove
@@ -141,6 +149,7 @@ const CartPage = () => {
                   </div>
                 </div>
 
+                {/* Item total */}
                 <div className="text-right">
                   <p className="text-xl font-bold">
                     Rs. {(item.price * item.quantity).toFixed(2)}
@@ -150,6 +159,7 @@ const CartPage = () => {
             ))}
           </div>
 
+          {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-md sticky top-4">
               <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
