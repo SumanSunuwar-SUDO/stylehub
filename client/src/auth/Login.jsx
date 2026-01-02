@@ -5,13 +5,14 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useContext } from "react";
-import { AuthContext } from "@/context/AuthContext"; // <-- import AuthContext
+import { AuthContext } from "@/context/AuthContext";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
-  const { login } = useContext(AuthContext); // <-- get login function
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,12 +37,19 @@ const Login = () => {
 
       if (userData.role === "admin") {
         router.push("/admin");
+        toast.success("Admin Logged in successfully.");
       } else {
         router.push("/");
+        toast.success("Logged in successfully.");
       }
     } catch (error) {
-      console.error("Login failed:", error);
-      alert("Login failed. Please check your credentials.");
+      if (error.response?.status === 400) {
+        toast.error("Invalid email or password");
+      } else {
+        toast.error("Something went wrong. Please try again");
+      }
+
+      console.log(error.response?.data?.message);
     }
   };
 

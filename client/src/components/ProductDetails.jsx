@@ -8,6 +8,7 @@ import Plus from "@/UI/Plus";
 import Minus from "@/UI/Minus";
 import Back from "@/UI/Back";
 import { CartContext } from "@/context/CartContext";
+import { toast } from "react-toastify";
 
 const ProductDetails = () => {
   const [product, setProduct] = useState(null);
@@ -53,13 +54,13 @@ const ProductDetails = () => {
   const handleAddToCart = () => {
     if (!product || !selectedSize) return;
 
-    addToCart(
+    const success = addToCart(
       {
         _id: product._id,
         productName: product.productName,
         price: selectedSize.price,
         size: selectedSize.size,
-        in_stuck: selectedSize.quantity, // <-- important
+        in_stuck: selectedSize.quantity,
         image: product.image.startsWith("http")
           ? product.image
           : `${baseURL}/images/${product.image}`,
@@ -67,7 +68,11 @@ const ProductDetails = () => {
       count
     );
 
-    alert(`${product.productName} (${selectedSize.size}) added to cart!`);
+    if (added) {
+      toast.success(
+        `${product.productName} (${selectedSize.size}) added to cart!`
+      );
+    }
   };
 
   // Buy now
@@ -88,6 +93,9 @@ const ProductDetails = () => {
     ];
 
     localStorage.setItem("buyNowCart", JSON.stringify(buyNowCart));
+    toast.success(
+      `${product.productName} (${selectedSize.size}) - Proceeding to checkout`
+    );
     router.push("/checkout");
   };
 

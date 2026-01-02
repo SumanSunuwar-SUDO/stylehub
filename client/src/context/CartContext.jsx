@@ -1,22 +1,28 @@
 "use client";
+
 import React, { createContext, useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+  // Lazy initialize cart from localStorage
+  const [cart, setCart] = useState(() => {
+    if (typeof window !== "undefined") {
+      const storedCart = localStorage.getItem("cart");
+      return storedCart ? JSON.parse(storedCart) : [];
+    }
+    return [];
+  });
 
-  useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) setCart(JSON.parse(storedCart));
-  }, []);
-
+  // Persist cart changes
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // Add to cart
   const addToCart = (product, quantity = 1) => {
+    let added = false;
+
     setCart((prevCart) => {
       const existingItem = prevCart.find(
         (item) => item._id === product._id && item.size === product.size
@@ -24,11 +30,12 @@ export const CartProvider = ({ children }) => {
 
       if (existingItem) {
         if (existingItem.quantity + quantity > existingItem.in_stuck) {
-          alert(
+          toast.error(
             `Cannot add more than ${existingItem.in_stuck} items for this size!`
           );
           return prevCart;
         }
+        added = true;
         return prevCart.map((item) =>
           item._id === product._id && item.size === product.size
             ? { ...item, quantity: item.quantity + quantity }
@@ -36,14 +43,17 @@ export const CartProvider = ({ children }) => {
         );
       } else {
         if (quantity > product.in_stuck) {
-          alert(
+          toast.error(
             `Cannot add more than ${product.in_stuck} items for this size!`
           );
           return prevCart;
         }
+        added = true;
         return [...prevCart, { ...product, quantity }];
       }
     });
+
+    return added;
   };
 
   const updateQuantity = (productId, quantity, size) => {
@@ -52,7 +62,9 @@ export const CartProvider = ({ children }) => {
         item._id === productId && item.size === size
           ? quantity > item.in_stuck
             ? (() => {
-                alert(`Only ${item.in_stuck} items available for this size!`);
+                toast.error(
+                  `Only ${item.in_stuck} items available for this size!`
+                );
                 return item;
               })()
             : { ...item, quantity }

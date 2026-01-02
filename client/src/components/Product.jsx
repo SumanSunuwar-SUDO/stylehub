@@ -4,10 +4,11 @@ import axios from "axios";
 import React, { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { CartContext } from "@/context/CartContext";
+import { toast } from "react-toastify";
 
 const Product = () => {
   const [products, setProducts] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState({}); // track selected size per product
+  const [selectedSizes, setSelectedSizes] = useState({});
   const router = useRouter();
   const { addToCart } = useContext(CartContext);
 
@@ -17,7 +18,6 @@ const Product = () => {
         const response = await axios.get(`${baseURL}/products/read`);
         setProducts(response.data.result || []);
 
-        // Set default selected size for each product
         const defaultSizes = {};
         (response.data.result || []).forEach((product) => {
           if (product.sizes?.length > 0) {
@@ -38,11 +38,12 @@ const Product = () => {
   const handleAddToCart = (product) => {
     const selectedSize = selectedSizes[product._id];
     if (!selectedSize || selectedSize.quantity === 0) {
-      alert("Please select a size that is in stock.");
+      toast.error("Please select a size that is in stock.");
       return;
     }
 
-    addToCart(
+    // Capture the returned boolean
+    const added = addToCart(
       {
         _id: product._id,
         productName: product.productName,
@@ -55,12 +56,18 @@ const Product = () => {
       },
       1
     );
+
+    if (added) {
+      toast.success(
+        `${product.productName} (${selectedSize.size}) added to cart!`
+      );
+    }
   };
 
   const buyNowHandler = (product) => {
     const selectedSize = selectedSizes[product._id];
     if (!selectedSize || selectedSize.quantity === 0) {
-      alert("Please select a size that is in stock.");
+      toast.error("Please select a size that is in stock.");
       return;
     }
 
@@ -79,6 +86,7 @@ const Product = () => {
     ];
 
     localStorage.setItem("buyNowCart", JSON.stringify(buyNowCart));
+    toast.success("Redirecting to checkout...");
     router.push("/checkout");
   };
 
@@ -99,7 +107,6 @@ const Product = () => {
                 className="w-[250px] rounded-md p-5 shadow-md bg-white cursor-pointer"
                 onClick={() => goToProductDetails(item._id)}
               >
-                {/* Product Image */}
                 <div className="h-[200px] bg-gray-200 flex items-center justify-center rounded-md">
                   <img
                     src={
@@ -112,12 +119,10 @@ const Product = () => {
                   />
                 </div>
 
-                {/* Product Name */}
                 <h1 className="mt-2 font-semibold text-lg">
                   {item.productName}
                 </h1>
 
-                {/* Size Selection */}
                 {item.sizes && item.sizes.length > 0 && (
                   <div className="mt-2 flex justify-between items-center">
                     <select
@@ -152,7 +157,6 @@ const Product = () => {
                   </div>
                 )}
 
-                {/* Buttons */}
                 <div className="flex justify-between items-center mt-3">
                   <button
                     className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
