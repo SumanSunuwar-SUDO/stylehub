@@ -142,17 +142,20 @@ const Page = () => {
                           View
                         </button>
 
-                        {/* Change Status Button */}
-                        {order.paymentMethod !== "esewa" &&
+                        {/* Only editable if COD AND not delivered/cancelled */}
+                        {order.paymentMethod === "cod" &&
+                          !["delivered", "cancelled"].includes(
+                            order.orderStatus
+                          ) &&
                           (order.isEditing ? (
                             <div className="flex items-center gap-2">
                               <select
-                                value={order.orderStatus}
+                                value={order.tempStatus || order.orderStatus} // use tempStatus for local selection
                                 onChange={(e) =>
                                   setOrders((prev) =>
                                     prev.map((o) =>
                                       o._id === order._id
-                                        ? { ...o, orderStatus: e.target.value }
+                                        ? { ...o, tempStatus: e.target.value }
                                         : o
                                     )
                                   )
@@ -163,31 +166,44 @@ const Page = () => {
                                 <option value="delivered">Delivered</option>
                                 <option value="cancelled">Cancelled</option>
                               </select>
+
                               <button
                                 onClick={async () => {
                                   try {
                                     const token =
                                       localStorage.getItem("accessToken");
-                                    await axios.put(
+                                    const newStatus =
+                                      order.tempStatus || order.orderStatus;
+
+                                    const res = await axios.put(
                                       `${baseURL}/orders/status/${order._id}`,
-                                      { status: order.orderStatus },
+                                      { status: newStatus },
                                       {
                                         headers: {
                                           Authorization: `Bearer ${token}`,
                                         },
                                       }
                                     );
+
                                     setOrders((prev) =>
                                       prev.map((o) =>
                                         o._id === order._id
-                                          ? { ...o, isEditing: false }
+                                          ? {
+                                              ...res.data.order,
+                                              isEditing: false,
+                                              tempStatus: undefined,
+                                            }
                                           : o
                                       )
                                     );
                                   } catch (err) {
                                     console.log(
                                       "Error updating status:",
-                                      err.response?.data || err.message
+                                      err.response?.data?.message || err.message
+                                    );
+                                    alert(
+                                      err.response?.data?.message ||
+                                        "Update failed"
                                     );
                                   }
                                 }}

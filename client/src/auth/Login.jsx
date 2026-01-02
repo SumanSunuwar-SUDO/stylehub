@@ -37,11 +37,7 @@ const Login = () => {
       if (userData.role === "admin") {
         router.push("/admin");
       } else {
-        if (window.history.length > 1) {
-          router.back();
-        } else {
-          router.push("/");
-        }
+        router.push("/");
       }
     } catch (error) {
       console.error("Login failed:", error);

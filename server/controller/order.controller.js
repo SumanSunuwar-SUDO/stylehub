@@ -128,14 +128,42 @@ exports.getOrderById = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("items.product"); // populate product to access stock
 
-    if (!order) return res.status(404).json({ success: false });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+
+    if (["delivered", "cancelled"].includes(order.orderStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot change status after '${order.orderStatus}'`,
+      });
+    }
+
+    // If cancelling, restore product stock
+    if (status === "cancelled") {
+      for (let item of order.items) {
+        if (item.product) {
+          item.product.in_stuck += item.quantity; // increase stock
+          await item.product.save();
+        }
+      }
+    }
 
     order.orderStatus = status;
+
+    // COD logic
+    if (order.paymentMethod === "cod") {
+      if (status === "processing") order.paymentStatus = "pending";
+      else if (status === "delivered") order.paymentStatus = "completed";
+      else if (status === "cancelled") order.paymentStatus = "failed";
+    }
+
     await order.save();
 
-    res.json({ success: true });
+    res.json({ success: true, message: "Order updated successfully", order });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
