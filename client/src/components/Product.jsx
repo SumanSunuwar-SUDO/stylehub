@@ -83,7 +83,7 @@ const Product = () => {
   };
 
   return (
-    <main className="max-w-[1400px] mx-auto flex-col items-center justify-center px-16 rounded-2xl mb-4 bg-[#F0E8E8]">
+    <main className="max-w-[1400px] mx-auto h-screen flex-col items-center justify-center px-16 rounded-2xl mb-4 bg-[#F0E8E8]">
       <div className="flex justify-start mb-4">
         <h2 className="text-3xl font-bold">Products</h2>
       </div>
