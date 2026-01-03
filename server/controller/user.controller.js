@@ -62,23 +62,23 @@ exports.createUser = async (req, res, next) => {
 
 exports.verifyEmail = async (req, res) => {
   try {
+    // Get token from header OR query
     const authHeader = req.headers.authorization;
+    const tokenFromQuery = req.query.token;
 
-    if (!authHeader) {
+    const token = authHeader?.split(" ")[1] || tokenFromQuery;
+
+    if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authorization token missing",
+        message: "Verification token missing",
       });
     }
-
-    const token = authHeader.split(" ")[1];
 
     const infoObj = jwt.verify(token, secretKey);
     const userId = infoObj.id;
 
-    await UserModel.findByIdAndUpdate(userId, {
-      isVerifiedEmail: true,
-    });
+    await UserModel.findByIdAndUpdate(userId, { isVerifiedEmail: true });
 
     res.status(200).json({
       success: true,
@@ -86,6 +86,60 @@ exports.verifyEmail = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+exports.resendVerificationEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.isVerifiedEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already verified",
+      });
+    }
+
+    // Generate new token
+    const token = jwt.sign({ id: user._id }, secretKey, { expiresIn: "1d" });
+
+    // Send verification email
+    await sendEmail({
+      to: email,
+      subject: "Resend Verification Email",
+      html: `
+        <h2>Verify your email</h2>
+        <p>Please click the link below to verify your email:</p>
+        <a href="http://localhost:3000/verify-email?token=${token}">
+          Verify Email
+        </a>
+      `,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Verification email sent successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
       message: error.message,
     });

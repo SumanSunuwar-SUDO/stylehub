@@ -9,6 +9,7 @@ const {
   login,
   forgotPassword,
   resetPassword,
+  resendVerificationEmail,
 } = require("../controller/user.controller");
 const { isAuthenticated } = require("../middleware/isAuthenticated");
 const { isAuthorization } = require("../middleware/isAuthorization");
@@ -16,6 +17,7 @@ const { isAuthorization } = require("../middleware/isAuthorization");
 const userRouter = Router();
 userRouter.route("/create").post(createUser);
 userRouter.route("/verify-mail").get(verifyEmail);
+userRouter.route("/resend-verification").post(resendVerificationEmail);
 userRouter.route("/reset-passowrd").post(isAuthenticated, resetPassword);
 
 userRouter

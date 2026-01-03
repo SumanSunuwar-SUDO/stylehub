@@ -1,7 +1,9 @@
 "use client";
 import { baseURL } from "@/config/env";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -9,24 +11,44 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [address, setAddress] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const result = await axios.post(`${baseURL}/users/create`, {
-      email: email,
-      firstName,
-      lastName,
-      password,
-      address,
-    });
-    console.log(result);
-    setFirstName("");
-    setLastName("");
-    setEmail("");
-    setPassword("");
-    setAddress("");
-    window.location.href = "/login";
+    try {
+      const result = await axios.post(`${baseURL}/users/create`, {
+        email,
+        firstName,
+        lastName,
+        password,
+        address,
+      });
+
+      console.log(result);
+
+      if (result.data.success) {
+        toast.success(
+          "Registration successful! Please check your email to verify."
+        );
+
+        setFirstName("");
+        setLastName("");
+        setEmail("");
+        setPassword("");
+        setAddress("");
+
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
+      }
+    } catch (error) {
+      if (error.response?.status === 400) {
+        toast.error(error.response.data.message || "Registration failed");
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
   };
 
   return (

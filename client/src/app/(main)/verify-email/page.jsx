@@ -4,6 +4,7 @@ import axios from "axios";
 import { baseURL } from "@/config/env";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
+import { toast } from "react-toastify";
 
 const Page = () => {
   const searchParams = useSearchParams();
@@ -12,23 +13,32 @@ const Page = () => {
 
   useEffect(() => {
     const verifyEmail = async () => {
+      if (!token) {
+        toast.error(
+          "Verification token is missing. Please check your email link."
+        );
+        router.push("/resend-verification");
+        return;
+      }
+
       try {
         await axios.get(`${baseURL}/users/verify-mail`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("Email verified successfully ");
+        toast.success("Email verified successfully!");
         router.push("/login");
       } catch (error) {
         console.log(error);
+        toast.error(
+          error.response?.data?.message ||
+            "Token invalid or expired. Please resend verification."
+        );
+        router.push("/resend-verification");
       }
     };
 
-    if (token) {
-      verifyEmail();
-    }
+    verifyEmail();
   }, [token, router]);
 
   return (
