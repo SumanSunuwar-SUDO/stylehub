@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { baseURL } from "@/config/env";
+import { toast } from "react-toastify";
 
 const page = () => {
   const [product, setProduct] = useState({
@@ -26,7 +27,7 @@ const page = () => {
 
   const sizeOptions = {
     Clothing: ["S", "M", "L", "XL", "XXL"],
-    Footwear: [6, 7, 8, 9, 10, 11, 12],
+    Footwear: [36, 37, 38, 39, 40, 41, 42],
   };
 
   const handleChange = (e) => {
@@ -62,7 +63,7 @@ const page = () => {
     e.preventDefault();
 
     if (!product.image) {
-      alert("Please upload an image first!");
+      toast.error("Please upload an image first!");
       return;
     }
 
@@ -81,7 +82,7 @@ const page = () => {
         },
       });
       console.log("Product created", res.data);
-      alert("Product created successfully!");
+      toast.success("Product created successfully!");
 
       // Reset form
       setProduct({
@@ -97,7 +98,7 @@ const page = () => {
       setPreview(null);
     } catch (err) {
       console.error("Product creation failed", err);
-      alert("Failed to create product");
+      toast.error("Failed to create product");
     }
   };
 

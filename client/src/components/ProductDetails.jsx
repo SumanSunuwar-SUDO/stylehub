@@ -68,7 +68,7 @@ const ProductDetails = () => {
       count
     );
 
-    if (added) {
+    if (success) {
       toast.success(
         `${product.productName} (${selectedSize.size}) added to cart!`
       );
