@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import { baseURL } from "@/config/env";
+import { toast } from "react-toastify";
 
 const EditProductPage = () => {
   const router = useRouter();
@@ -18,6 +19,7 @@ const EditProductPage = () => {
     description: "",
     image: "",
   });
+
   const [sizes, setSizes] = useState([]);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -30,18 +32,20 @@ const EditProductPage = () => {
 
   const sizeOptions = {
     Clothing: ["S", "M", "L", "XL", "XXL"],
-    Footwear: [6, 7, 8, 9, 10, 11, 12],
+    Footwear: [36, 37, 38, 39, 40, 41, 42],
   };
 
-  // Fetch product data for edit
+  // Fetch product to edit
   useEffect(() => {
     if (!productId) return;
+
     const fetchProduct = async () => {
       try {
         const res = await axios.get(`${baseURL}/products/read/${productId}`);
-        const prod = res.data.result; // ✅ Use 'result' as per your API
+        const prod = res.data.result;
+
         if (!prod) {
-          alert("Product not found");
+          toast.error("Product not found");
           router.push("/admin/products");
           return;
         }
@@ -54,27 +58,32 @@ const EditProductPage = () => {
           description: prod.description,
           image: prod.image,
         });
+
         setSizes(prod.sizes || []);
         setPreview(prod.image);
       } catch (err) {
         console.error("Failed to fetch product:", err);
-        alert("Failed to load product data");
+        toast.error("Failed to load product data");
         router.push("/admin/products");
       }
     };
+
     fetchProduct();
   }, [productId, router]);
 
-  // Handle input change
+  // Input change handler
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
 
-  // Handle image upload
+  // Image upload handler
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      toast.warn("No file selected");
+      return;
+    }
 
     setFile(selectedFile);
     setPreview(URL.createObjectURL(selectedFile));
@@ -84,23 +93,35 @@ const EditProductPage = () => {
 
     try {
       setUploading(true);
+
       const res = await axios.post(`${baseURL}/file/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       setProduct((prev) => ({ ...prev, image: res.data.imageUrl }));
-      setUploading(false);
+
+      toast.success("Image uploaded successfully");
     } catch (err) {
-      setUploading(false);
       console.error("Image upload failed", err);
-      alert("Image upload failed");
+      toast.error("Image upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
-  // Handle submit (update product)
+  // Submit update handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!product.image) return alert("Please upload an image");
-    if (sizes.length === 0) return alert("Add at least one size");
+
+    if (!product.image) {
+      toast.error("Please upload an image");
+      return;
+    }
+
+    if (sizes.length === 0) {
+      toast.error("Add at least one size");
+      return;
+    }
 
     const payload = { ...product, sizes };
     const token = localStorage.getItem("accessToken");
@@ -109,11 +130,12 @@ const EditProductPage = () => {
       await axios.patch(`${baseURL}/products/update/${productId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Product updated successfully");
+
+      toast.success("Product updated successfully");
       router.push("/admin/products");
     } catch (err) {
       console.error("Update failed:", err);
-      alert("Failed to update product");
+      toast.error("Failed to update product");
     }
   };
 
@@ -152,6 +174,7 @@ const EditProductPage = () => {
                   subCategory: "",
                 });
                 setSizes([]);
+                toast.info("Category changed, please select again");
               }}
               className="px-3 py-2 rounded-xl w-full border border-gray-300"
               required
@@ -205,12 +228,13 @@ const EditProductPage = () => {
               className="px-3 py-2 rounded-xl w-full h-32 border border-gray-300"
             />
 
-            {/* Sizes / Stock / Price */}
+            {/* Sizes */}
             {product.mainCategory && product.gender && product.subCategory && (
               <div>
                 <label className="block font-medium mb-1">
                   Sizes / Stock / Price
                 </label>
+
                 {sizes.map((s, idx) => (
                   <div
                     key={s._id || idx}
@@ -264,9 +288,10 @@ const EditProductPage = () => {
 
                     <button
                       type="button"
-                      onClick={() =>
-                        setSizes(sizes.filter((_, i) => i !== idx))
-                      }
+                      onClick={() => {
+                        setSizes(sizes.filter((_, i) => i !== idx));
+                        toast.info("Size removed");
+                      }}
                       className="bg-red-500 text-white px-2 rounded"
                     >
                       Remove
@@ -276,9 +301,10 @@ const EditProductPage = () => {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setSizes([...sizes, { size: "", quantity: "", price: "" }])
-                  }
+                  onClick={() => {
+                    setSizes([...sizes, { size: "", quantity: "", price: "" }]);
+                    toast.success("Size added");
+                  }}
                   className="bg-green-500 text-white px-3 py-1 rounded"
                 >
                   Add Size
@@ -293,7 +319,7 @@ const EditProductPage = () => {
                 uploading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              Update Product
+              {uploading ? "Uploading..." : "Update Product"}
             </button>
           </div>
 

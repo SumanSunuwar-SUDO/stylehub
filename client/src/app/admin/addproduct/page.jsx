@@ -15,7 +15,7 @@ const page = () => {
     image: "",
   });
 
-  const [sizes, setSizes] = useState([]); // [{ size: 'S', quantity: 5, price: 100 }]
+  const [sizes, setSizes] = useState([]);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -51,11 +51,12 @@ const page = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setProduct((prev) => ({ ...prev, image: res.data.imageUrl }));
+      toast.success("Image uploaded successfully!");
       setUploading(false);
     } catch (err) {
       setUploading(false);
       console.error("Image upload failed", err);
-      alert("Image upload failed");
+      toast.error("Image upload failed!");
     }
   };
 
@@ -68,23 +69,22 @@ const page = () => {
     }
 
     if (sizes.length === 0) {
-      alert("Please add at least one size with quantity and price!");
+      toast.error("Please add at least one size!");
       return;
     }
 
     const payload = { ...product, sizes };
 
     try {
-      const token = localStorage.getItem("accessToken"); // Get token
+      const token = localStorage.getItem("accessToken");
       const res = await axios.post(`${baseURL}/products/create`, payload, {
         headers: {
-          Authorization: `Bearer ${token}`, // <-- send token here
+          Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Product created", res.data);
+
       toast.success("Product created successfully!");
 
-      // Reset form
       setProduct({
         productName: "",
         mainCategory: "",
@@ -98,7 +98,7 @@ const page = () => {
       setPreview(null);
     } catch (err) {
       console.error("Product creation failed", err);
-      toast.error("Failed to create product");
+      toast.error("Failed to create product!");
     }
   };
 
@@ -109,13 +109,12 @@ const page = () => {
         <h2 className="text-xl font-semibold text-white">Add Product</h2>
       </div>
 
-      <div className="my-5 bg-white rounded-2xl p-6 shadow-md">
+      <div className="m-5 bg-white rounded-2xl p-6 shadow-md">
         <h1 className="text-2xl font-bold mb-6">Add New Product</h1>
 
         <form className="flex gap-6" onSubmit={handleSubmit}>
           {/* Left Column */}
           <div className="flex-1 grid grid-cols-1 gap-4">
-            {/* Product Name */}
             <div>
               <label className="block font-medium mb-1">Product Name:</label>
               <input
@@ -129,7 +128,6 @@ const page = () => {
               />
             </div>
 
-            {/* Main Category */}
             <div>
               <label className="block font-medium mb-1">Category:</label>
               <select
@@ -157,7 +155,6 @@ const page = () => {
               </select>
             </div>
 
-            {/* Gender */}
             {product.mainCategory && (
               <div>
                 <label className="block font-medium mb-1">Gender:</label>
@@ -177,7 +174,6 @@ const page = () => {
               </div>
             )}
 
-            {/* Subcategory */}
             {product.mainCategory && product.gender && (
               <div>
                 <label className="block font-medium mb-1">Subcategory:</label>
@@ -198,7 +194,6 @@ const page = () => {
               </div>
             )}
 
-            {/* Sizes Table */}
             {product.mainCategory && product.gender && product.subCategory && (
               <div>
                 <label className="block font-medium mb-1">
@@ -279,7 +274,6 @@ const page = () => {
               </div>
             )}
 
-            {/* Description */}
             <div>
               <label className="block font-medium mb-1">Description:</label>
               <textarea
@@ -291,7 +285,6 @@ const page = () => {
               />
             </div>
 
-            {/* Submit Button (inside form) */}
             <button
               type="submit"
               disabled={uploading}
@@ -303,7 +296,7 @@ const page = () => {
             </button>
           </div>
 
-          {/* Right Column: Image Upload */}
+          {/* Image Upload */}
           <div className="w-1/3 flex flex-col items-center justify-start gap-4 p-4 border border-gray-200 rounded-xl bg-gray-50">
             <label className="block font-medium mb-1">Product Image:</label>
 
