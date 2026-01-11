@@ -2,7 +2,7 @@
 import { baseURL } from "@/config/env";
 import axios from "axios";
 import React, { useEffect, useState, useContext } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CartContext } from "@/context/CartContext";
 import { toast } from "react-toastify";
 
@@ -11,13 +11,29 @@ const Product = () => {
   const [selectedSizes, setSelectedSizes] = useState({});
   const router = useRouter();
   const { addToCart } = useContext(CartContext);
+  const searchParams = useSearchParams();
+
+  // Get search, category, and subCategory from URL
+  const search = searchParams.get("search") || "";
+  const category = searchParams.get("category") || "";
+  const subCategory = searchParams.get("subCategory") || "";
 
   useEffect(() => {
     const getProducts = async () => {
       try {
-        const response = await axios.get(`${baseURL}/products/read`);
+        // Build query params dynamically
+        let url = `${baseURL}/products/read?`;
+        if (search.trim() !== "")
+          url += `search=${encodeURIComponent(search)}&`;
+        if (category) url += `category=${encodeURIComponent(category)}&`;
+        if (subCategory)
+          url += `subCategory=${encodeURIComponent(subCategory)}&`;
+
+        const response = await axios.get(url);
+
         setProducts(response.data.result || []);
 
+        // Set default selected size for each product
         const defaultSizes = {};
         (response.data.result || []).forEach((product) => {
           if (product.sizes?.length > 0) {
@@ -30,8 +46,9 @@ const Product = () => {
         console.log(error);
       }
     };
+
     getProducts();
-  }, []);
+  }, [search, category, subCategory]);
 
   const goToProductDetails = (id) => router.push(`/products/${id}`);
 
@@ -42,7 +59,6 @@ const Product = () => {
       return;
     }
 
-    // Capture the returned boolean
     const added = addToCart(
       {
         _id: product._id,

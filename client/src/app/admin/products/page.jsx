@@ -5,24 +5,35 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Search from "@/UI/Search";
+import { toast } from "react-toastify";
 
 const Page = () => {
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
-  // Fetch all products
-  const fetchProducts = async () => {
+  // Fetch products (with optional search)
+  const fetchProducts = async (search = "") => {
     try {
-      const res = await axios.get(`${baseURL}/products/read`);
+      const url =
+        search.trim() !== ""
+          ? `${baseURL}/products/read?search=${search}`
+          : `${baseURL}/products/read`;
+
+      const res = await axios.get(url);
       setProducts(res.data.result || []);
     } catch (err) {
       console.error("Failed to fetch products:", err);
+      toast.error("Failed to fetch products!");
     }
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const delayDebounce = setTimeout(() => {
+      fetchProducts(searchTerm);
+    }, 500);
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm]);
 
   // Delete product
   const handleDelete = async (id) => {
@@ -32,18 +43,24 @@ const Page = () => {
       await axios.delete(`${baseURL}/products/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Product deleted successfully");
+      toast.success("Product deleted successfully!");
       // Update state
       setProducts(products.filter((p) => p._id !== id));
     } catch (err) {
       console.error("Delete failed:", err);
-      alert("Failed to delete product");
+      toast.error("Failed to delete product!");
     }
   };
 
   // Edit product
   const handleEdit = (id) => {
     router.push(`/admin/addproduct/${id}`);
+  };
+
+  // Handle search
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchProducts(searchTerm);
   };
 
   return (
@@ -54,18 +71,26 @@ const Page = () => {
       </div>
 
       {/* Product List Header */}
-      <div className="my-5 px-5 flex justify-between">
+      <div className="my-5 px-5 flex justify-between items-center">
         <h1 className="text-xl font-bold ">All Products</h1>
-        <div className="flex items-center relative">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="flex items-center relative"
+        >
           <input
             type="text"
             placeholder="Search by product name..."
             className="h-[35px] text-sm px-4 pr-10 rounded-md border bg-white border-gray-300 outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button className="absolute right-2 text-gray-500 hover:text-black">
+          <button
+            type="submit"
+            className="absolute right-2 text-gray-500 hover:text-black"
+          >
             <Search />
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Product Table */}

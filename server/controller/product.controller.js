@@ -38,12 +38,40 @@ exports.createProduct = async (req, res, next) => {
 // READ ALL PRODUCTS
 exports.readAllProduct = async (req, res, next) => {
   try {
-    let product = await ProductModel.find();
+    // Get query params
+    const search = req.query.search || "";
+    const category = req.query.category || ""; // men/women from query
+    const subCategory = req.query.subCategory || "";
+
+    // Build filter object
+    let filter = {};
+
+    // Filter by gender/category (case-insensitive)
+    if (category) {
+      filter.gender = { $regex: new RegExp(`^${category}$`, "i") };
+    }
+
+    // Filter by subCategory (case-insensitive)
+    if (subCategory) {
+      filter.subCategory = { $regex: new RegExp(`^${subCategory}$`, "i") };
+    }
+
+    // Filter by search term (name, description, subCategory, gender)
+    if (search.trim() !== "") {
+      filter.$or = [
+        { productName: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { subCategory: { $regex: search, $options: "i" } },
+        { gender: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const products = await ProductModel.find(filter);
 
     res.status(200).json({
       success: true,
       message: "Products retrieved successfully.",
-      result: product,
+      result: products,
     });
   } catch (error) {
     res.status(400).json({
@@ -52,7 +80,6 @@ exports.readAllProduct = async (req, res, next) => {
     });
   }
 };
-
 // READ SPECIFIC PRODUCT
 exports.readSpecific = async (req, res, next) => {
   try {

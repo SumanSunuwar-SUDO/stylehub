@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import Search from "@/UI/Search";
 import Cart from "@/UI/Cart";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { CartContext } from "@/context/CartContext";
 import { AuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import { baseURL } from "@/config/env";
+import { toast } from "react-toastify";
 
 const Navbar = () => {
   const { cart, getTotalItems } = useContext(CartContext);
@@ -17,6 +18,9 @@ const Navbar = () => {
 
   const [showDetails, setShowDetails] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const searchRef = useRef(null);
 
   // Toggle profile dropdown
   const toggleDetails = () => setShowDetails(!showDetails);
@@ -36,8 +40,7 @@ const Navbar = () => {
     const getCategories = async () => {
       try {
         const res = await axios.get(`${baseURL}/categories/`);
-        console.log(res.data);
-        setCategories(res.data); // keep main categories + subcategories structure
+        setCategories(res.data);
       } catch (err) {
         console.error(err);
       }
@@ -45,10 +48,37 @@ const Navbar = () => {
     getCategories();
   }, []);
 
-  const links = [
-    { label: "Home", href: "/" },
-    { label: "Products", href: "/products" },
-  ];
+  // Handle live search
+  const handleSearchChange = async (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (!value.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const res = await axios.get(
+        `${baseURL}/products/read?search=${encodeURIComponent(value)}`
+      );
+      setSearchResults(res.data.result || []);
+    } catch (err) {
+      console.error("Search failed:", err);
+      toast.error("Failed to search products!");
+    }
+  };
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setSearchResults([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <nav className="h-[70px] bg-[#E67514] w-full">
@@ -60,16 +90,15 @@ const Navbar = () => {
 
         {/* Links */}
         <ul className="flex justify-center items-center gap-5 font-semibold text-xl pl-5">
-          {links.map((link) => (
-            <li key={link.label} className="list-none">
-              <Link href={link.href}>{link.label}</Link>
-            </li>
-          ))}
+          <li>
+            <Link href="/">Home</Link>
+          </li>
+          <li>
+            <Link href="/products">Products</Link>
+          </li>
 
-          <li className="relative list-none text-xl group">
-            <span className="cursor-pointer transition-colors duration-200">
-              Categories
-            </span>
+          <li className="relative text-xl group">
+            <span className="cursor-pointer">Categories</span>
             <div className="absolute top-full left-0 bg-white shadow-2xl rounded-lg mt-3 min-w-[220px] z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out overflow-hidden">
               {categories.length > 0 ? (
                 categories.map((mainCat, index) => (
@@ -77,14 +106,14 @@ const Navbar = () => {
                     key={mainCat._id}
                     className={index !== 0 ? "border-t border-gray-100" : ""}
                   >
-                    <div className="px-5 py-3 font-bold   from-orange-50 to-transparent">
-                      {mainCat._id}
-                    </div>
+                    <div className="px-5 py-3 font-bold">{mainCat._id}</div>
                     {mainCat.subCategories.map((sub) => (
                       <Link
                         key={sub}
-                        href={`/products?category=${sub}`}
-                        className="block px-6 py-2.5 text-gray-700  hover:from-blue-50 hover:to-transparent hover:pl-7 transition-all duration-200"
+                        href={`/products?subCategory=${encodeURIComponent(
+                          sub
+                        )}`}
+                        className="block px-6 py-2.5 text-gray-700 hover:pl-7 hover:bg-gray-100 transition-all duration-200"
                       >
                         {sub}
                       </Link>
@@ -96,10 +125,17 @@ const Navbar = () => {
               )}
             </div>
           </li>
+
+          <li>
+            <Link href="/products?category=men">Men</Link>
+          </li>
+          <li>
+            <Link href="/products?category=women">Women</Link>
+          </li>
         </ul>
 
-        {/* Right section: Cart, Search, Profile/Login */}
-        <div className="flex items-center gap-4">
+        {/* Right section */}
+        <div className="flex items-center gap-4 relative">
           {/* Cart */}
           <div className="relative cursor-pointer" onClick={cartClick}>
             <Cart />
@@ -111,15 +147,46 @@ const Navbar = () => {
           </div>
 
           {/* Search */}
-          <div className="relative">
+          <div ref={searchRef} className="relative w-[250px]">
             <input
               type="text"
               placeholder="Search products..."
               className="w-full px-4 py-1.5 pr-10 bg-white rounded-md outline-none"
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
-            <button className="absolute self-center right-4 text-gray-500 hover:text-black">
+            <button
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"
+              onClick={() => {
+                if (!searchTerm.trim()) return;
+                router.push(
+                  `/products?search=${encodeURIComponent(searchTerm)}`
+                );
+                setSearchTerm("");
+                setSearchResults([]);
+              }}
+            >
               <Search />
             </button>
+
+            {/* Live search dropdown */}
+            {searchResults.length > 0 && (
+              <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded-md mt-1 max-h-64 overflow-y-auto z-50">
+                {searchResults.map((product) => (
+                  <div
+                    key={product._id}
+                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                    onClick={() => {
+                      router.push(`/products/${product._id}`);
+                      setSearchResults([]);
+                      setSearchTerm("");
+                    }}
+                  >
+                    {product.productName}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Profile/Login */}
@@ -138,12 +205,14 @@ const Navbar = () => {
                     Hi, {user.name || user.username || "User"}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">{user.email}</p>
+
                   <div
                     className="px-3 py-2 border rounded-md text-md my-2 cursor-pointer hover:bg-gray-100"
                     onClick={() => router.push("/orders")}
                   >
                     My Orders
                   </div>
+
                   <button
                     onClick={handleLogout}
                     className="w-full bg-blue-600 text-white py-2 rounded-md text-sm hover:bg-blue-700"
