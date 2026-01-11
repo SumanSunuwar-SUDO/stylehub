@@ -10,7 +10,7 @@ const page = () => {
   const [stats, setStats] = useState({
     totalSales: 0,
     totalOrders: 0,
-    pendingPayments: 0, // fixed typo
+    pendignPayments: 0,
     totalCustomers: 0,
   });
 
@@ -21,7 +21,7 @@ const page = () => {
         setStats(response.data.data);
       } catch (error) {
         console.log("Dashboard stats error", error);
-        toast.error("Failed to load dashboard stats"); // added toast for error
+        toast.error("Failed to load dashboard stats");
       }
     };
 
@@ -47,7 +47,7 @@ const page = () => {
         </div>
         <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
           <h2 className="text-xl font-medium mb-2">Pending Payments</h2>
-          <h1 className="text-xl font-bold">{stats.pendingPayments}</h1>
+          <h1 className="text-xl font-bold">{stats.pendignPayments}</h1>
         </div>
         <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
           <h2 className="text-xl font-medium mb-2">Total Customers</h2>
