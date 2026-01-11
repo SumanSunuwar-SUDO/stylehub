@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import React from "react";
+import { toast } from "react-toastify";
 
 // Safe import of Forward with fallback
 let ForwardIcon;
@@ -14,6 +15,11 @@ try {
 
 const Hero = () => {
   const router = useRouter();
+
+  const handleExploreClick = () => {
+    toast.info("Redirecting to products...");
+    router.push("/products");
+  };
 
   return (
     <main className="max-w-[1400px] mx-auto min-h-screen flex items-center px-16">
@@ -33,7 +39,7 @@ const Hero = () => {
 
         <div className="mt-7">
           <button
-            onClick={() => router.push("/products")}
+            onClick={handleExploreClick}
             className="flex justify-center items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             <h1>Explore Products</h1>

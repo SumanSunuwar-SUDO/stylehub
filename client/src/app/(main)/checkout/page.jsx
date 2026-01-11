@@ -5,6 +5,7 @@ import { baseURL } from "@/config/env";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -18,7 +19,10 @@ const CheckoutPage = () => {
   // Redirect if not logged in
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    if (!token) router.push("/login");
+    if (!token) {
+      toast.error("You must be logged in to checkout!");
+      router.push("/login");
+    }
   }, []);
 
   // Load cart / Buy Now items and remove duplicates
@@ -57,11 +61,14 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (cart.length === 0) return alert("Your cart is empty!");
+    if (cart.length === 0) {
+      toast.error("Your cart is empty!");
+      return;
+    }
 
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      alert("You are not logged in!");
+      toast.error("You are not logged in!");
       router.push("/login");
       return;
     }
@@ -115,6 +122,7 @@ const CheckoutPage = () => {
           localStorage.removeItem("cart");
           localStorage.removeItem("buyNowCart");
           setCart([]);
+          toast.success("Order placed successfully!");
           router.push(`/orders/${data.orderId}`);
         }
       }
@@ -128,12 +136,15 @@ const CheckoutPage = () => {
           }
         );
 
-        if (data.success && data.paymentData) submitEsewaForm(data.paymentData);
-        else alert(data.message || "Failed to initiate eSewa payment");
+        if (data.success && data.paymentData) {
+          submitEsewaForm(data.paymentData);
+        } else {
+          toast.error(data.message || "Failed to initiate eSewa payment");
+        }
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      alert(error.response?.data?.message || "Failed to place order");
+      toast.error(error.response?.data?.message || "Failed to place order");
     }
   };
 

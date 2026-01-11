@@ -37,7 +37,10 @@ const page = () => {
 
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      toast.warn("No file selected!");
+      return;
+    }
 
     setFile(selectedFile);
     setPreview(URL.createObjectURL(selectedFile));
@@ -77,10 +80,8 @@ const page = () => {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await axios.post(`${baseURL}/products/create`, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await axios.post(`${baseURL}/products/create`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success("Product created successfully!");
@@ -104,7 +105,6 @@ const page = () => {
 
   return (
     <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
-      {/* Header */}
       <div className="h-[65px] bg-[#E67514] w-full flex justify-between items-center border-b px-5">
         <h2 className="text-xl font-semibold text-white">Add Product</h2>
       </div>
@@ -113,7 +113,6 @@ const page = () => {
         <h1 className="text-2xl font-bold mb-6">Add New Product</h1>
 
         <form className="flex gap-6" onSubmit={handleSubmit}>
-          {/* Left Column */}
           <div className="flex-1 grid grid-cols-1 gap-4">
             <div>
               <label className="block font-medium mb-1">Product Name:</label>
@@ -142,6 +141,7 @@ const page = () => {
                     subCategory: "",
                   });
                   setSizes([]);
+                  toast.info("Category changed, please select again");
                 }}
                 className="px-3 py-2 rounded-xl w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 required
@@ -252,9 +252,10 @@ const page = () => {
 
                     <button
                       type="button"
-                      onClick={() =>
-                        setSizes(sizes.filter((_, i) => i !== idx))
-                      }
+                      onClick={() => {
+                        setSizes(sizes.filter((_, i) => i !== idx));
+                        toast.info("Size removed");
+                      }}
                       className="bg-red-500 text-white px-2 rounded"
                     >
                       Remove
@@ -264,9 +265,10 @@ const page = () => {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setSizes([...sizes, { size: "", quantity: "", price: "" }])
-                  }
+                  onClick={() => {
+                    setSizes([...sizes, { size: "", quantity: "", price: "" }]);
+                    toast.success("Size added");
+                  }}
                   className="bg-green-500 text-white px-3 py-1 rounded"
                 >
                   Add Size
@@ -296,7 +298,6 @@ const page = () => {
             </button>
           </div>
 
-          {/* Image Upload */}
           <div className="w-1/3 flex flex-col items-center justify-start gap-4 p-4 border border-gray-200 rounded-xl bg-gray-50">
             <label className="block font-medium mb-1">Product Image:</label>
 

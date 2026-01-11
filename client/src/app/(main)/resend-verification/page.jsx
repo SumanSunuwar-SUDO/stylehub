@@ -15,7 +15,7 @@ const ResendVerification = () => {
 
     try {
       const res = await axios.post(`${baseURL}/users/resend-verification`, {
-        email,
+        email: email.trim(),
       });
 
       if (res.data.success) {

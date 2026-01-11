@@ -1,5 +1,5 @@
-import Hero from "@/components/Hero";
-import Product from "@/components/Product";
+import Hero from "@/app/(main)/components/Hero";
+import Product from "@/app/(main)/components/Product";
 import React from "react";
 
 const page = () => {

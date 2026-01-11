@@ -5,6 +5,7 @@ import React, { useContext } from "react";
 import { useRouter } from "next/navigation";
 import Back from "@/UI/Back";
 import { CartContext } from "@/context/CartContext";
+import { toast } from "react-toastify";
 
 const CartPage = () => {
   const router = useRouter();
@@ -19,7 +20,7 @@ const CartPage = () => {
     if (!product) return;
 
     if (product.quantity >= product.in_stuck) {
-      alert(`Only ${product.in_stuck} items available in stock!`);
+      toast.warning(`Only ${product.in_stuck} items available in stock!`);
       return;
     }
     updateQuantity(productId, product.quantity + 1, size);
@@ -34,13 +35,23 @@ const CartPage = () => {
     }
   };
 
+  const handleRemove = (productId, size) => {
+    removeFromCart(productId, size);
+    toast.success("Item removed from cart!");
+  };
+
+  const handleClearCart = () => {
+    clearCart();
+    toast.success("Cart cleared successfully!");
+  };
+
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
   const goToCheckout = () => {
     if (cart.length === 0) {
-      alert("Your cart is empty!");
+      toast.error("Your cart is empty!");
       return;
     }
 
@@ -63,7 +74,7 @@ const CartPage = () => {
         </h1>
         {cart.length > 0 && (
           <button
-            onClick={clearCart}
+            onClick={handleClearCart}
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
           >
             Clear Cart
@@ -140,7 +151,7 @@ const CartPage = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        removeFromCart(item._id, item.size);
+                        handleRemove(item._id, item.size);
                       }}
                       className="text-red-500 hover:text-red-700 font-medium"
                     >
