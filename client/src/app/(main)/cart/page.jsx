@@ -1,31 +1,34 @@
 "use client";
 
 import { baseURL } from "@/config/env";
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Back from "@/UI/Back";
 import { CartContext } from "@/context/CartContext";
 import { toast } from "react-toastify";
+import { useSubmit } from "@/app/hooks/useSubmit";
 
 const CartPage = () => {
   const router = useRouter();
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalItems } =
     useContext(CartContext);
+  const { loading, handleSubmit: safeSubmit } = useSubmit();
 
-  // Increase quantity for a specific product-size combination
+  // Increase quantity
   const increaseQuantity = (productId, size) => {
     const product = cart.find(
       (item) => item._id === productId && item.size === size
     );
     if (!product) return;
 
-    if (product.quantity >= product.in_stuck) {
-      toast.warning(`Only ${product.in_stuck} items available in stock!`);
+    if (product.quantity >= product.in_stock) {
+      toast.warning(`Only ${product.in_stock} items available in stock!`);
       return;
     }
     updateQuantity(productId, product.quantity + 1, size);
   };
 
+  // Decrease quantity
   const decreaseQuantity = (productId, size) => {
     const product = cart.find(
       (item) => item._id === productId && item.size === size
@@ -35,28 +38,39 @@ const CartPage = () => {
     }
   };
 
+  // Remove item
   const handleRemove = (productId, size) => {
     removeFromCart(productId, size);
     toast.success("Item removed from cart!");
   };
 
-  const handleClearCart = () => {
-    clearCart();
-    toast.success("Cart cleared successfully!");
+  // Calculate total
+  const calculateTotal = useMemo(
+    () => cart.reduce((total, item) => total + item.price * item.quantity, 0),
+    [cart]
+  );
+
+  // Checkout safely
+  const goToCheckoutSafe = () => {
+    safeSubmit(async () => {
+      if (cart.length === 0) {
+        toast.error("Your cart is empty!");
+        return;
+      }
+
+      localStorage.removeItem("buyNowCart");
+      router.push("/checkout");
+    });
   };
 
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
-
-  const goToCheckout = () => {
-    if (cart.length === 0) {
-      toast.error("Your cart is empty!");
-      return;
-    }
-
-    localStorage.removeItem("buyNowCart");
-    router.push("/checkout");
+  // Clear cart safely
+  const handleClearCartSafe = () => {
+    safeSubmit(async () => {
+      if (window.confirm("Are you sure you want to clear your cart?")) {
+        clearCart();
+        toast.success("Cart cleared successfully!");
+      }
+    });
   };
 
   return (
@@ -65,7 +79,7 @@ const CartPage = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="flex text-3xl font-bold">
           <span
-            className="py-2 pr-3"
+            className="py-2 pr-3 cursor-pointer"
             onClick={() => router.back() || router.push("/")}
           >
             <Back />
@@ -74,10 +88,15 @@ const CartPage = () => {
         </h1>
         {cart.length > 0 && (
           <button
-            onClick={handleClearCart}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            onClick={handleClearCartSafe}
+            disabled={loading}
+            className={`px-4 py-2 rounded-lg ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-amber-500 hover:bg-amber-600 text-white"
+            }`}
           >
-            Clear Cart
+            {loading ? "Processing..." : "Clear Cart"}
           </button>
         )}
       </div>
@@ -97,7 +116,7 @@ const CartPage = () => {
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
               <div
-                key={`${item._id}-${item.size}`} // unique key per size
+                key={`${item._id}-${item.size}`}
                 className="flex gap-4 bg-white p-4 rounded-lg shadow-md cursor-pointer"
                 onClick={() => router.push(`/products/${item._id}`)}
               >
@@ -180,22 +199,27 @@ const CartPage = () => {
                   <span className="text-gray-600">
                     Items ({getTotalItems()})
                   </span>
-                  <span>Rs. {calculateTotal().toFixed(2)}</span>
+                  <span>Rs. {calculateTotal.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between text-xl font-bold">
                   <span>Total</span>
-                  <span>Rs. {calculateTotal().toFixed(2)}</span>
+                  <span>Rs. {calculateTotal.toFixed(2)}</span>
                 </div>
               </div>
 
               <button
-                onClick={goToCheckout}
-                className="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold"
+                onClick={goToCheckoutSafe}
+                disabled={loading}
+                className={`w-full py-3 font-semibold rounded-lg ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
               >
-                Proceed to Checkout
+                {loading ? "Processing..." : "Proceed to Checkout"}
               </button>
 
               <button

@@ -35,7 +35,8 @@ const ProductDetails = () => {
           setSelectedSize(firstAvailable || data.sizes[0]);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching product:", err);
+        toast.error("Failed to load product details. Try again later.");
       }
     };
 
@@ -60,7 +61,7 @@ const ProductDetails = () => {
         productName: product.productName,
         price: selectedSize.price,
         size: selectedSize.size,
-        in_stuck: selectedSize.quantity,
+        in_stock: selectedSize.quantity,
         image: product.image.startsWith("http")
           ? product.image
           : `${baseURL}/images/${product.image}`,
@@ -86,6 +87,7 @@ const ProductDetails = () => {
         price: selectedSize.price,
         size: selectedSize.size,
         quantity: count,
+        in_stock: selectedSize.quantity,
         image: product.image.startsWith("http")
           ? product.image
           : `${baseURL}/images/${product.image}`,
@@ -109,7 +111,7 @@ const ProductDetails = () => {
   return (
     <main className="max-w-[1400px] mx-auto flex-col items-center justify-center px-16 my-10">
       {/* Header */}
-      <div className="flex text-3xl font-bold mb-5">
+      <div className="flex items-center text-3xl font-bold mb-5">
         <span
           className="py-2 pr-3 cursor-pointer"
           onClick={() => router.back() || router.push("/")}
@@ -121,10 +123,10 @@ const ProductDetails = () => {
 
       {/* Product container */}
       <div className="flex justify-center">
-        <div className="w-[1000px] flex-col bg-white rounded-2xl mt-5 shadow-2xl">
+        <div className="w-full max-w-[1000px] flex-col bg-white rounded-2xl mt-5 shadow-2xl overflow-hidden">
           <div className="flex flex-col lg:flex-row">
             {/* Product Image */}
-            <div className="h-[350px] w-[350px] m-10 bg-gray-200 flex items-center justify-center rounded-2xl">
+            <div className="h-[350px] w-[350px] m-10 bg-gray-200 flex items-center justify-center rounded-2xl overflow-hidden">
               <img
                 src={
                   product.image.startsWith("http")
@@ -138,9 +140,8 @@ const ProductDetails = () => {
 
             {/* Product Info */}
             <div className="mx-5 mt-10 flex-1">
-              <h1 className="mt-4 text-2xl font-bold">{product.productName}</h1>
+              <h1 className="text-2xl font-bold">{product.productName}</h1>
 
-              {/* Category */}
               <p className="mt-3 text-xl font-medium">
                 Category: {product.gender || product.category || "N/A"}
               </p>
@@ -156,7 +157,7 @@ const ProductDetails = () => {
                         (s) => s.size === e.target.value
                       );
                       setSelectedSize(newSize);
-                      setCount(1); // reset quantity on size change
+                      setCount(1);
                     }}
                     className="w-24 px-2 py-1 border rounded mt-1"
                   >
@@ -179,7 +180,7 @@ const ProductDetails = () => {
               )}
 
               {/* Quantity */}
-              <div className="flex gap-2 text-xl font-semibold items-center mt-2">
+              <div className="flex gap-2 items-center mt-2 text-xl font-semibold">
                 <h1>Quantity:</h1>
                 <button
                   className="px-2 py-2 rounded-xl bg-[#F0E8E8]"
@@ -200,14 +201,14 @@ const ProductDetails = () => {
               {/* Buttons */}
               <div className="flex gap-5 mt-3">
                 <button
-                  className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
+                  className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8] hover:bg-blue-500 hover:text-white transition"
                   onClick={handleAddToCart}
                   disabled={!selectedSize || selectedSize.quantity === 0}
                 >
                   Add to Cart
                 </button>
                 <button
-                  className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8]"
+                  className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8] hover:bg-blue-500 hover:text-white transition"
                   onClick={buyNowHandler}
                   disabled={!selectedSize || selectedSize.quantity === 0}
                 >
@@ -221,7 +222,7 @@ const ProductDetails = () => {
           <div className="px-10 pb-10 text-[20px] font-semibold">
             Description:
             <p className="text-xl font-normal mt-2 text-justify">
-              {product.description}
+              {product.description || "No description available."}
             </p>
           </div>
         </div>

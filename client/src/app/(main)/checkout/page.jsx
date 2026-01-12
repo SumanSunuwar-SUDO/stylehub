@@ -1,32 +1,45 @@
 "use client";
 
 import Back from "@/UI/Back";
+import { useSubmit } from "@/app/hooks/useSubmit";
 import { baseURL } from "@/config/env";
+import { CartContext } from "@/context/CartContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const CheckoutPage = () => {
   const router = useRouter();
-  const [cart, setCart] = useState([]);
+  const { cart, setCart, clearCart } = useContext(CartContext);
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
+  const { loading, handleSubmit: safeSubmit } = useSubmit();
+
+  const [isClient, setIsClient] = useState(false); // client-only flag
+
+  // mark as client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Redirect if not logged in
   useEffect(() => {
+    if (!isClient) return;
     const token = localStorage.getItem("accessToken");
     if (!token) {
       toast.error("You must be logged in to checkout!");
       router.push("/login");
     }
-  }, []);
+  }, [isClient, router]);
 
-  // Load cart / Buy Now items and remove duplicates
+  // Load cart / Buy Now items
   useEffect(() => {
+    if (!isClient) return;
+
     const buyNowCart = localStorage.getItem("buyNowCart");
     const normalCart = localStorage.getItem("cart");
     let loadedCart = [];
@@ -42,15 +55,19 @@ const CheckoutPage = () => {
       loadedCart = normalCart ? JSON.parse(normalCart) : [];
     }
 
-    // Remove duplicates based on _id + size
+    // Remove duplicates and filter out 0 quantity
     const uniqueCart = Array.from(
       new Map(
-        loadedCart.map((item) => [`${item._id}-${item.size || "N/A"}`, item])
+        loadedCart
+          .filter((item) => item.quantity > 0)
+          .map((item) => [`${item._id}-${item.size || "N/A"}`, item])
       ).values()
     );
 
     setCart(uniqueCart);
-  }, []);
+  }, [isClient, setCart]);
+
+  if (!isClient) return null; // prevent hydration error
 
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -59,93 +76,92 @@ const CheckoutPage = () => {
   const shippingCost = 100;
   const grandTotal = subtotal + shippingCost;
 
-  const handleSubmit = async (e) => {
+  const handleSubmitSafe = (e) => {
     e.preventDefault();
-    if (cart.length === 0) {
-      toast.error("Your cart is empty!");
-      return;
-    }
 
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      toast.error("You are not logged in!");
-      router.push("/login");
-      return;
-    }
-
-    const orderData = {
-      fullName,
-      email,
-      phone,
-      address,
-      paymentMethod,
-      subTotal: Number(subtotal.toFixed(2)),
-      total: Number(grandTotal.toFixed(2)),
-      items: cart.map((item) => ({
-        _id: item._id,
-        productName: item.productName,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        size: item.size || "N/A",
-      })),
-    };
-
-    const submitEsewaForm = (paymentData) => {
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
-
-      Object.entries(paymentData).forEach(([key, value]) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
-      });
-
-      document.body.appendChild(form);
-      form.submit();
-    };
-
-    try {
-      if (paymentMethod === "cod") {
-        const { data } = await axios.post(
-          `${baseURL}/orders/create`,
-          orderData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (data.success) {
-          localStorage.removeItem("cart");
-          localStorage.removeItem("buyNowCart");
-          setCart([]);
-          toast.success("Order placed successfully!");
-          router.push(`/orders/${data.orderId}`);
-        }
+    safeSubmit(async () => {
+      if (cart.length === 0) {
+        toast.error("Your cart is empty!");
+        return;
       }
 
-      if (paymentMethod === "esewa") {
-        const { data } = await axios.post(
-          `${baseURL}/orders/esewa/initiate`,
-          orderData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (data.success && data.paymentData) {
-          submitEsewaForm(data.paymentData);
-        } else {
-          toast.error(data.message || "Failed to initiate eSewa payment");
-        }
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast.error("You are not logged in!");
+        router.push("/login");
+        return;
       }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error(error.response?.data?.message || "Failed to place order");
-    }
+
+      const orderData = {
+        fullName,
+        email,
+        phone,
+        address,
+        paymentMethod,
+        subTotal: Number(subtotal.toFixed(2)),
+        total: Number(grandTotal.toFixed(2)),
+        items: cart.map((item) => ({
+          _id: item._id,
+          productName: item.productName,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          size: item.size || "N/A",
+        })),
+      };
+
+      const submitEsewaForm = (paymentData) => {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
+
+        Object.entries(paymentData).forEach(([key, value]) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      };
+
+      try {
+        if (paymentMethod === "cod") {
+          const { data } = await axios.post(
+            `${baseURL}/orders/create`,
+            orderData,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          if (data.success) {
+            clearCart();
+            toast.success(
+              "Order placed successfully! Confirmation email has been sent."
+            );
+            router.push(`/orders/${data.orderId}`);
+          }
+        }
+
+        if (paymentMethod === "esewa") {
+          const { data } = await axios.post(
+            `${baseURL}/orders/esewa/initiate`,
+            orderData,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          if (data.success && data.paymentData) {
+            submitEsewaForm(data.paymentData);
+          } else {
+            toast.error(data.message || "Failed to initiate eSewa payment");
+          }
+        }
+      } catch (error) {
+        console.error("Checkout error:", error);
+        toast.error(error.response?.data?.message || "Failed to place order");
+      }
+    });
   };
 
   return (
@@ -164,7 +180,7 @@ const CheckoutPage = () => {
         {/* Shipping Info */}
         <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-6">Shipping Information</h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmitSafe} className="space-y-5">
             <input
               type="text"
               placeholder="Full Name"
@@ -201,6 +217,7 @@ const CheckoutPage = () => {
 
             <div className="border-t pt-4">
               <h3 className="text-xl font-bold mb-2">Payment Method</h3>
+
               <label className="flex items-center gap-3 border px-4 py-3 rounded-lg mb-2 cursor-pointer">
                 <input
                   type="radio"
@@ -227,9 +244,14 @@ const CheckoutPage = () => {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700"
+              className={`w-full py-4 rounded-lg font-bold ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
+              }`}
+              disabled={loading}
             >
-              Place Order
+              {loading ? "Processing..." : "Place Order"}
             </button>
           </form>
         </div>

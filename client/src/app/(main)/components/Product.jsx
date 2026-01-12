@@ -1,7 +1,8 @@
 "use client";
-import { baseURL } from "@/config/env";
-import axios from "axios";
+
 import React, { useEffect, useState, useContext } from "react";
+import axios from "axios";
+import { baseURL } from "@/config/env";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CartContext } from "@/context/CartContext";
 import { toast } from "react-toastify";
@@ -13,7 +14,6 @@ const Product = () => {
   const { addToCart } = useContext(CartContext);
   const searchParams = useSearchParams();
 
-  // Get search, category, and subCategory from URL
   const search = searchParams.get("search") || "";
   const category = searchParams.get("category") || "";
   const subCategory = searchParams.get("subCategory") || "";
@@ -21,7 +21,6 @@ const Product = () => {
   useEffect(() => {
     const getProducts = async () => {
       try {
-        // Build query params dynamically
         let url = `${baseURL}/products/read?`;
         if (search.trim() !== "")
           url += `search=${encodeURIComponent(search)}&`;
@@ -30,12 +29,12 @@ const Product = () => {
           url += `subCategory=${encodeURIComponent(subCategory)}&`;
 
         const response = await axios.get(url);
-
-        setProducts(response.data.result || []);
+        const fetchedProducts = response.data.result || [];
+        setProducts(fetchedProducts);
 
         // Set default selected size for each product
         const defaultSizes = {};
-        (response.data.result || []).forEach((product) => {
+        fetchedProducts.forEach((product) => {
           if (product.sizes?.length > 0) {
             const available = product.sizes.find((s) => s.quantity > 0);
             defaultSizes[product._id] = available || product.sizes[0];
@@ -43,7 +42,8 @@ const Product = () => {
         });
         setSelectedSizes(defaultSizes);
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching products:", error);
+        toast.error("Failed to load products. Try again later.");
       }
     };
 
@@ -65,7 +65,7 @@ const Product = () => {
         productName: product.productName,
         price: selectedSize.price,
         size: selectedSize.size,
-        in_stuck: selectedSize.quantity,
+        in_stock: selectedSize.quantity,
         image: product.image.startsWith("http")
           ? product.image
           : `${baseURL}/images/${product.image}`,
@@ -94,7 +94,7 @@ const Product = () => {
         price: selectedSize.price,
         size: selectedSize.size,
         quantity: 1,
-        in_stuck: selectedSize.quantity,
+        in_stock: selectedSize.quantity,
         image: product.image.startsWith("http")
           ? product.image
           : `${baseURL}/images/${product.image}`,
@@ -111,7 +111,8 @@ const Product = () => {
       <div className="flex justify-start mb-4">
         <h2 className="text-3xl font-bold">Products</h2>
       </div>
-      <div className=" flex justify-center">
+
+      <div className="flex justify-center">
         <div className="max-w-[1100px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 mt-10">
           {products.length > 0 ? (
             products.map((item) => {
@@ -120,10 +121,10 @@ const Product = () => {
               return (
                 <div
                   key={item._id}
-                  className="w-[250px] rounded-md p-5 shadow-md bg-white cursor-pointer"
+                  className="w-[250px] rounded-md p-5 shadow-md bg-white cursor-pointer hover:shadow-lg transition"
                   onClick={() => goToProductDetails(item._id)}
                 >
-                  <div className="h-[200px] bg-gray-200 flex items-center justify-center rounded-md">
+                  <div className="h-[200px] bg-gray-200 flex items-center justify-center rounded-md overflow-hidden">
                     <img
                       src={
                         item.image.startsWith("http")
@@ -139,7 +140,7 @@ const Product = () => {
                     {item.productName}
                   </h1>
 
-                  {item.sizes && item.sizes.length > 0 && (
+                  {item.sizes?.length > 0 && (
                     <div className="mt-2 flex justify-between items-center">
                       <select
                         value={selected?.size || ""}
@@ -152,7 +153,7 @@ const Product = () => {
                           })
                         }
                         onClick={(e) => e.stopPropagation()}
-                        className="border w-[60px] px-2 py-1 rounded text-sm font-medium"
+                        className="border w-[70px] px-2 py-1 rounded text-sm font-medium"
                       >
                         {item.sizes.map((s) => (
                           <option
@@ -175,7 +176,7 @@ const Product = () => {
 
                   <div className="flex justify-between items-center mt-3">
                     <button
-                      className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
+                      className="border-gray-600 px-3 py-2 bg-[#F0E8E8] rounded-xl text-sm font-medium hover:bg-blue-500 hover:text-white transition-all duration-250"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleAddToCart(item);
@@ -185,7 +186,7 @@ const Product = () => {
                     </button>
 
                     <button
-                      className="border-gray-600 px-3 py-2 cursor-pointer bg-[#F0E8E8] rounded-xl"
+                      className="border-gray-600 px-3 py-2 bg-[#F0E8E8] rounded-xl text-sm font-medium hover:bg-blue-500 hover:text-white transition-all duration-250"
                       onClick={(e) => {
                         e.stopPropagation();
                         buyNowHandler(item);

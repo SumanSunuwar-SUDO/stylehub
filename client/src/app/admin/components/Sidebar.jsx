@@ -30,7 +30,11 @@ export default function Sidebar() {
             <Link
               key={link.label}
               href={link.href}
-              className="hover:bg-gray-400 transition-all duration-300 hover:text-xl hover:pl-5 p-2 rounded"
+              className={`p-2 rounded transition-all duration-300 hover:pl-5 hover:text-xl ${
+                router.pathname === link.href
+                  ? "bg-gray-300 font-semibold"
+                  : "hover:bg-gray-400"
+              }`}
             >
               {link.label}
             </Link>
@@ -38,6 +42,7 @@ export default function Sidebar() {
 
           {/* Logout button just below the links */}
           <button
+            type="button"
             onClick={handleLogout}
             className="mt-2 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 hover:shadow-2xl transition-all duration-300"
           >

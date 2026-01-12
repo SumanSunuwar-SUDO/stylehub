@@ -63,7 +63,7 @@ const PaymentSuccessPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-lg">
         <h1 className="text-3xl font-bold text-green-600 text-center mb-6">
-          Payment Successful ✅
+          Payment Successful
         </h1>
 
         <div className="space-y-2 text-gray-700">

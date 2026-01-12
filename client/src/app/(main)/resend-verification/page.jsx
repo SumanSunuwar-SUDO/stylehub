@@ -11,6 +11,12 @@ const ResendVerification = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!email.trim()) {
+      toast.error("Please enter your email.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -19,12 +25,15 @@ const ResendVerification = () => {
       });
 
       if (res.data.success) {
-        toast.success(res.data.message);
+        toast.success(res.data.message || "Verification email sent!");
         setEmail("");
       }
     } catch (error) {
+      console.error("Resend verification error:", error.response?.data);
+
       toast.error(
-        error.response?.data?.message || "Something went wrong. Try again."
+        error.response?.data?.message ||
+          "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);
@@ -37,6 +46,9 @@ const ResendVerification = () => {
         <h2 className="text-2xl font-bold mb-4 text-center">
           Resend Verification Email
         </h2>
+        <p className="text-center text-gray-600 mb-6">
+          Enter your email to receive a new verification link.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -51,7 +63,11 @@ const ResendVerification = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-[#F0E8E8] hover:bg-blue-500 hover:text-white transition-all duration-300"
+            className={`w-full py-2 rounded-lg font-semibold transition-all duration-300 ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[#F0E8E8] hover:bg-blue-500 hover:text-white"
+            }`}
           >
             {loading ? "Sending..." : "Resend Email"}
           </button>

@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const { admin_email, email_pass } = require("./constant");
 
 let transporterInfo = {
   host: "smtp.gmail.com",
@@ -6,8 +7,8 @@ let transporterInfo = {
   secure: false,
   auth: {
     // note: user and pass must be genuine
-    user: "tooesa600@gmail.com",
-    pass: "jtjd rvns sczx fxfa",
+    user: admin_email,
+    pass: email_pass,
   },
 };
 

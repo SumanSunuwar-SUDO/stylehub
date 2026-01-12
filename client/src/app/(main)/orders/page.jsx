@@ -4,6 +4,7 @@ import { baseURL } from "@/config/env";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const OrdersHistoryPage = () => {
   const router = useRouter();
@@ -20,8 +21,6 @@ const OrdersHistoryPage = () => {
         },
       });
 
-      console.log("ORDERS RESPONSE 👉", res.data);
-
       if (Array.isArray(res.data.orders)) {
         setOrders(res.data.orders);
       } else {
@@ -30,12 +29,12 @@ const OrdersHistoryPage = () => {
     } catch (error) {
       console.error("Error fetching orders:", error);
 
-      // If token expired or invalid
       if (error.response?.status === 401) {
         localStorage.removeItem("accessToken");
+        toast.error("Your session expired. Please login again.");
         router.push("/login");
       } else {
-        alert("Failed to load orders");
+        toast.error("Failed to load orders");
       }
 
       setOrders([]);
@@ -48,12 +47,13 @@ const OrdersHistoryPage = () => {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
+      toast.error("Please login to view your orders.");
       router.push("/login");
       return;
     }
 
     fetchOrders(token);
-  }, []);
+  }, [router]);
 
   // Status badge color
   const getStatusColor = (status) => {
@@ -75,13 +75,19 @@ const OrdersHistoryPage = () => {
 
   // Cancel order
   const handleCancelOrder = async (orderId) => {
-    if (!confirm("Are you sure you want to cancel this order?")) return;
+    const confirmCancel = window.confirm(
+      "Are you sure you want to cancel this order?"
+    );
+    if (!confirmCancel) return;
 
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    if (!token) {
+      toast.error("Login required.");
+      return;
+    }
 
     try {
-      await axios.put(
+      const res = await axios.put(
         `${baseURL}/orders/cancel/${orderId}`,
         {},
         {
@@ -89,15 +95,15 @@ const OrdersHistoryPage = () => {
         }
       );
 
-      alert("Order cancelled successfully!");
+      toast.success("Order cancelled successfully!");
       fetchOrders(token);
     } catch (error) {
       console.error("Error cancelling order:", error);
-      alert(error.response?.data?.message || "Failed to cancel order");
+      toast.error(error.response?.data?.message || "Failed to cancel order");
     }
   };
 
-  // Loading state
+  // Loading state UI
   if (loading) {
     return (
       <div className="max-w-[1400px] mx-auto px-16 py-10 flex justify-center items-center min-h-screen">
@@ -134,23 +140,26 @@ const OrdersHistoryPage = () => {
               key={order._id}
               className="bg-white rounded-lg shadow-md overflow-hidden"
             >
-              {/* Header */}
+              {/* Order Header */}
               <div className="bg-gray-50 p-6 border-b">
                 <div className="flex flex-wrap justify-between items-start gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Order ID</p>
                     <p className="font-semibold">#{order._id}</p>
                   </div>
+
                   <div>
                     <p className="text-sm text-gray-600">Date</p>
                     <p className="font-semibold">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-gray-600">Total</p>
                     <p className="font-semibold text-lg">Rs.{order.total}</p>
                   </div>
+
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Status</p>
                     <span
@@ -164,7 +173,7 @@ const OrdersHistoryPage = () => {
                 </div>
               </div>
 
-              {/* Items */}
+              {/* Order Items */}
               <div className="p-6 space-y-4">
                 {order.items?.map((item, index) => (
                   <div
@@ -180,11 +189,13 @@ const OrdersHistoryPage = () => {
                       alt={item.productName}
                       className="w-20 h-20 rounded object-cover"
                     />
+
                     <div className="flex-1">
                       <h3 className="font-semibold">{item.productName}</h3>
                       <p className="text-sm text-gray-600">
                         Size: {item.size} | Qty: {item.quantity}
                       </p>
+
                       <p className="text-sm font-semibold text-blue-600">
                         Rs.{item.price} × {item.quantity} = Rs.{item.subTotal}
                       </p>
@@ -192,7 +203,7 @@ const OrdersHistoryPage = () => {
                   </div>
                 ))}
 
-                {/* Actions */}
+                {/* Order Buttons */}
                 <div className="flex gap-3 pt-6 border-t">
                   <button
                     onClick={() => router.push(`/orders/${order._id}`)}

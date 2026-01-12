@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // Lazy initialize cart from localStorage
+  // Lazy load cart from localStorage
   const [cart, setCart] = useState(() => {
     if (typeof window !== "undefined") {
       const storedCart = localStorage.getItem("cart");
@@ -15,11 +15,16 @@ export const CartProvider = ({ children }) => {
     return [];
   });
 
-  // Persist cart changes
+  // Persist or remove cart on change
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
+    if (cart.length === 0) {
+      localStorage.removeItem("cart");
+    } else {
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
   }, [cart]);
 
+  // Add to Cart
   const addToCart = (product, quantity = 1) => {
     let added = false;
 
@@ -56,6 +61,7 @@ export const CartProvider = ({ children }) => {
     return added;
   };
 
+  // Update quantity
   const updateQuantity = (productId, quantity, size) => {
     setCart((prev) =>
       prev.map((item) =>
@@ -73,17 +79,25 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+  // Remove specific item
   const removeFromCart = (productId, size) => {
     setCart((prev) =>
       prev.filter((item) => !(item._id === productId && item.size === size))
     );
   };
 
-  const clearCart = () => setCart([]);
+  // Clear entire cart
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem("cart");
+    localStorage.removeItem("buyNowCart");
+  };
 
+  // Total items count
   const getTotalItems = () =>
     cart.reduce((total, item) => total + (item.quantity || 1), 0);
 
+  // Total price
   const getTotalPrice = () =>
     cart.reduce((total, item) => total + item.price * (item.quantity || 1), 0);
 

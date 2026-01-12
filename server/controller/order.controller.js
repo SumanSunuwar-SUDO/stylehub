@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const crypto = require("crypto");
 const Product = require("../schema/product.model");
 const Order = require("../schema/order.models");
-const { esewa_secret_key } = require("../utils/constant");
+const { esewa_secret_key, admin_email } = require("../utils/constant");
+const { sendEmail } = require("../utils/sendEmail");
 
 exports.createOrder = async (req, res) => {
   try {
@@ -85,6 +86,68 @@ exports.createOrder = async (req, res) => {
     });
 
     await order.save();
+
+    await sendEmail({
+      from: admin_email,
+      to: email.toLowerCase(),
+      subject: `StyleHub - Order Confirmation #${order._id}`,
+      html: `<div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: auto; background: #f8f8f8; padding: 20px; border-radius: 8px;">
+
+  <div style="background:#E67514; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0;">StyleHub</h1>
+    <p style="color: white; margin-top: 5px;">Order Confirmation</p>
+  </div>
+
+  <div style="background: white; padding: 20px; border-radius: 0 0 8px 8px;">
+
+    <p>Hello <strong>${fullName}</strong>,</p>
+    <p>Thank you for shopping at <strong>StyleHub</strong>! Your order has been successfully placed.</p>
+
+    <div style="margin: 20px 0; padding: 15px; background: #fafafa; border-left: 4px solid #111;">
+      <p style="margin: 0;">
+        <strong>Order ID:</strong> ${order._id}<br/>
+        <strong>Order Date:</strong> ${new Date().toLocaleDateString()}
+      </p>
+    </div>
+
+    <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">Order Summary</h3>
+
+    <ul style="list-style: none; padding: 0;">
+      ${order.items
+        .map(
+          (item) => `
+        <li style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+          <div>
+            <strong style="font-size: 15px;">${item.productName}</strong><br/>
+            Size: ${item.size} | Qty: ${item.quantity}<br/>
+            <strong>NPR ${item.price}</strong>
+          </div>
+        </li>
+      `
+        )
+        .join("")}
+    </ul>
+
+    <div style="margin-top: 20px; padding: 15px; background: white; border: 1px solid #eee; border-radius: 6px;">
+      <p style="margin: 0; font-size: 16px;">
+        <strong>Total Amount: NPR ${order.total}</strong>
+      </p>
+    </div>
+
+    <p style="margin-top: 20px;">
+      We will notify you when your order is shipped.  
+      If you have any questions, feel free to contact our support team.
+    </p>
+
+    <p style="margin-top: 30px; font-size: 14px; color: #555;">
+      Regards,<br/>
+      <strong>StyleHub Team</strong>
+    </p>
+
+  </div>
+</div>
+`,
+    });
 
     res.status(201).json({
       success: true,

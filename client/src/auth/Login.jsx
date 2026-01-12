@@ -7,50 +7,53 @@ import { useRouter } from "next/navigation";
 import { useState, useContext } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import { toast } from "react-toastify";
+import { useSubmit } from "@/app/hooks/useSubmit";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
   const { login } = useContext(AuthContext);
+  const { loading, handleSubmit: safeSubmit } = useSubmit();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      const result = await axios.post(`${baseURL}/users/login`, {
-        email,
-        password,
-      });
 
-      const userData = {
-        name: result.data.data.firstName,
-        email: result.data.data.email,
-        role: result.data.data.role,
-      };
-      const token = result.data.token;
+    safeSubmit(async () => {
+      try {
+        const result = await axios.post(`${baseURL}/users/login`, {
+          email,
+          password,
+        });
 
-      // Call AuthContext login instead of writing to localStorage directly
-      login(userData, token);
+        const userData = {
+          name: result.data.data.firstName,
+          email: result.data.data.email,
+          role: result.data.data.role,
+        };
+        const token = result.data.token;
 
-      setEmail("");
-      setPassword("");
+        login(userData, token);
 
-      if (userData.role === "admin") {
-        router.push("/admin");
-        toast.success("Admin Logged in successfully.");
-      } else {
-        router.push("/");
-        toast.success("Logged in successfully.");
+        setEmail("");
+        setPassword("");
+
+        if (userData.role === "admin") {
+          router.push("/admin");
+          toast.success("Admin Logged in successfully.");
+        } else {
+          router.push("/");
+          toast.success("Logged in successfully.");
+        }
+      } catch (error) {
+        if (error.response?.status === 400) {
+          toast.error("Invalid email or password");
+        } else {
+          toast.error("Something went wrong. Please try again");
+        }
+        console.log(error.response?.data?.message);
       }
-    } catch (error) {
-      if (error.response?.status === 400) {
-        toast.error("Invalid email or password");
-      } else {
-        toast.error("Something went wrong. Please try again");
-      }
-
-      console.log(error.response?.data?.message);
-    }
+    });
   };
 
   return (
@@ -86,9 +89,14 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-[#F0E8E8] text-black py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300"
+            disabled={loading}
+            className={`w-full py-2 rounded-lg transition-all duration-300 ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed text-black"
+                : "bg-[#F0E8E8] text-black hover:bg-blue-600 hover:text-white"
+            }`}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

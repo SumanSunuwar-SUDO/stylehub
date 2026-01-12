@@ -9,8 +9,10 @@ import { toast } from "react-toastify";
 
 const Page = () => {
   const [orders, setOrders] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [savingStatus, setSavingStatus] = useState({});
   const router = useRouter();
 
   // Fetch all orders
@@ -36,6 +38,8 @@ const Page = () => {
           error.response?.data || error.message
         );
         toast.error("Failed to fetch orders!");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -45,10 +49,7 @@ const Page = () => {
   // Handle search input
   useEffect(() => {
     const term = searchTerm.toLowerCase().trim();
-    if (!term) {
-      setFilteredOrders(orders);
-      return;
-    }
+    if (!term) return setFilteredOrders(orders);
 
     const filtered = orders.filter(
       (o) =>
@@ -61,9 +62,11 @@ const Page = () => {
 
   // Handle status change for COD orders
   const handleStatusChange = async (order) => {
+    const newStatus = order.tempStatus || order.orderStatus;
+    setSavingStatus((prev) => ({ ...prev, [order._id]: true }));
+
     try {
       const token = localStorage.getItem("accessToken");
-      const newStatus = order.tempStatus || order.orderStatus;
 
       const res = await axios.put(
         `${baseURL}/orders/status/${order._id}`,
@@ -95,6 +98,8 @@ const Page = () => {
       toast.error(
         err.response?.data?.message || "Failed to update order status!"
       );
+    } finally {
+      setSavingStatus((prev) => ({ ...prev, [order._id]: false }));
     }
   };
 
@@ -106,18 +111,18 @@ const Page = () => {
       </div>
 
       {/* Search Bar */}
-      <div className="mt-8 px-5 flex items-center justify-between">
+      <div className="mt-8 px-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-xl font-semibold">All Orders</h1>
 
-        <div className="flex items-center relative">
+        <div className="flex items-center relative w-full sm:w-auto">
           <input
             type="text"
             placeholder="Search by customer name, email, or order ID..."
-            className="h-[35px] text-sm px-4 pr-10 rounded-md border bg-white border-gray-300 outline-none"
+            className="h-[35px] text-sm px-4 pr-10 rounded-md border bg-white border-gray-300 outline-none w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button className="absolute right-2 text-gray-500">
+          <button type="button" className="absolute right-2 text-gray-500">
             <Search />
           </button>
         </div>
@@ -125,7 +130,7 @@ const Page = () => {
 
       {/* Orders Table */}
       <div className="overflow-x-auto bg-white rounded-md shadow mt-4">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[900px]">
           <thead className="bg-gray-100 border-b">
             <tr>
               <th className="text-left px-4 py-3">S.N.</th>
@@ -141,7 +146,13 @@ const Page = () => {
           </thead>
 
           <tbody>
-            {filteredOrders.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="9" className="text-center py-6 text-gray-500">
+                  Loading orders...
+                </td>
+              </tr>
+            ) : filteredOrders.length === 0 ? (
               <tr>
                 <td colSpan="9" className="text-center py-6 text-gray-500">
                   No orders found
@@ -155,6 +166,14 @@ const Page = () => {
                   hour: "2-digit",
                   minute: "2-digit",
                 });
+
+                // Status badge colors
+                const statusClasses =
+                  order.orderStatus === "delivered"
+                    ? "bg-green-100 text-green-700"
+                    : order.orderStatus === "processing"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-red-100 text-red-700";
 
                 return (
                   <tr
@@ -171,15 +190,9 @@ const Page = () => {
                     <td className="px-4 py-3 capitalize">
                       {order.paymentMethod} ({order.paymentStatus})
                     </td>
-                    <td className="px-4 py-3 capitalize">
+                    <td className="px-4 py-3">
                       <span
-                        className={`px-2 py-1 text-xs rounded ${
-                          order.orderStatus === "delivered"
-                            ? "bg-green-100 text-green-700"
-                            : order.orderStatus === "processing"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
+                        className={`px-2 py-1 text-xs rounded ${statusClasses}`}
                       >
                         {order.paymentMethod === "esewa"
                           ? "delivered"
@@ -190,7 +203,7 @@ const Page = () => {
                       {formattedDate} {formattedTime}
                     </td>
 
-                    <td className="px-4 py-3 flex gap-2">
+                    <td className="px-4 py-3 flex gap-2 flex-wrap">
                       <button
                         onClick={() =>
                           router.push(`/admin/orders/${order._id}`)
@@ -218,6 +231,7 @@ const Page = () => {
                                 )
                               }
                               className="border rounded px-2 py-1 text-sm"
+                              disabled={savingStatus[order._id]}
                             >
                               <option value="processing">Processing</option>
                               <option value="delivered">Delivered</option>
@@ -226,9 +240,14 @@ const Page = () => {
 
                             <button
                               onClick={() => handleStatusChange(order)}
-                              className="px-2 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                              disabled={savingStatus[order._id]}
+                              className={`px-2 py-1 text-sm text-white rounded ${
+                                savingStatus[order._id]
+                                  ? "bg-gray-400"
+                                  : "bg-green-600 hover:bg-green-700"
+                              }`}
                             >
-                              Save
+                              {savingStatus[order._id] ? "Saving..." : "Save"}
                             </button>
                           </div>
                         ) : (

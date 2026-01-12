@@ -4,6 +4,7 @@ import { baseURL } from "@/config/env";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const OrderConfirmationPage = () => {
   const router = useRouter();
@@ -17,9 +18,10 @@ const OrderConfirmationPage = () => {
     const fetchOrderDetails = async () => {
       try {
         const token = localStorage.getItem("accessToken");
+
         if (!token) {
-          alert("You must be logged in to view this order");
-          router.push("/login");
+          toast.error("Please login first!");
+          router.replace("/login");
           return;
         }
 
@@ -32,11 +34,12 @@ const OrderConfirmationPage = () => {
         if (data.success) {
           setOrder(data.order);
         } else {
-          alert("Failed to load order details");
+          toast.error("Order not found!");
+          router.replace("/");
         }
       } catch (error) {
         console.error("Error fetching order:", error);
-        alert(error.response?.data?.message || "Failed to load order details");
+        router.replace("/");
       } finally {
         setLoading(false);
       }
@@ -45,6 +48,7 @@ const OrderConfirmationPage = () => {
     if (orderId) fetchOrderDetails();
   }, [orderId, router]);
 
+  // LOADING
   if (loading) {
     return (
       <div className="max-w-[1400px] mx-auto px-16 py-10 flex justify-center items-center min-h-screen">
@@ -53,6 +57,7 @@ const OrderConfirmationPage = () => {
     );
   }
 
+  // ORDER NOT FOUND
   if (!order) {
     return (
       <div className="max-w-[1400px] mx-auto px-16 py-10 flex justify-center items-center min-h-screen">
@@ -73,7 +78,6 @@ const OrderConfirmationPage = () => {
     <main className="max-w-[1400px] mx-auto px-16 py-10">
       {/* Success Message */}
       <div className="bg-green-50 border-2 border-green-500 rounded-lg p-8 mb-8 text-center">
-        <div className="text-green-600 text-6xl mb-4">✓</div>
         <h1 className="text-3xl font-bold text-green-700 mb-2">
           Order Placed Successfully!
         </h1>
@@ -135,7 +139,7 @@ const OrderConfirmationPage = () => {
 
         {/* Shipping & Payment Info */}
         <div className="space-y-6">
-          {/* Shipping Information */}
+          {/* Shipping Info */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-bold mb-4">Shipping Information</h3>
             <div className="space-y-2 text-gray-600">
@@ -154,7 +158,7 @@ const OrderConfirmationPage = () => {
             </div>
           </div>
 
-          {/* Payment Information */}
+          {/* Payment Info */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-bold mb-4">Payment Information</h3>
             <div className="space-y-2">
@@ -162,12 +166,14 @@ const OrderConfirmationPage = () => {
                 <span className="font-semibold">Method:</span>{" "}
                 {order.paymentMethod === "cod" ? "Cash on Delivery" : "eSewa"}
               </p>
+
               <p className="text-gray-600">
                 <span className="font-semibold">Payment Status:</span>{" "}
                 <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
                   {order.paymentStatus || "Pending"}
                 </span>
               </p>
+
               <p className="text-gray-600">
                 <span className="font-semibold">Order Status:</span>{" "}
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
@@ -177,7 +183,7 @@ const OrderConfirmationPage = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Buttons */}
           <div className="space-y-3">
             <button
               onClick={() => router.push("/orders")}
@@ -185,6 +191,7 @@ const OrderConfirmationPage = () => {
             >
               View All Orders
             </button>
+
             <button
               onClick={() => router.push("/")}
               className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300"
