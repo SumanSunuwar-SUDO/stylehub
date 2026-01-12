@@ -1,6 +1,8 @@
 "use client";
 
 import { baseURL } from "@/config/env";
+import Hide from "@/UI/Hide";
+import Show from "@/UI/Show";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -15,11 +17,11 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Frontend validation
     if (!firstName || !lastName || !email || !password || !address) {
       toast.error("All fields are required!");
       return;
@@ -41,7 +43,6 @@ const Register = () => {
           "Registration successful! Please check your email to verify."
         );
 
-        // Clear form
         setFirstName("");
         setLastName("");
         setEmail("");
@@ -50,12 +51,10 @@ const Register = () => {
 
         setTimeout(() => {
           router.push("/login");
-        }, 1500);
+        }, 800);
       }
     } catch (error) {
       console.log("Axios error response:", error.response?.data);
-
-      // Show backend error if available
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -73,46 +72,71 @@ const Register = () => {
         <p className="text-center text-gray-500 mb-6">Create your account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-          <input
-            type="text"
-            placeholder="First Name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            required
-            className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
-          />
-          <input
-            type="text"
-            placeholder="Last Name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-            className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
-          />
-          <input
-            type="text"
-            placeholder="Address (e.g., Kathmandu)"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            required
-            className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
-          />
+          <div>
+            <label className="block text-sm font-medium mb-1">First Name</label>
+            <input
+              type="text"
+              placeholder="Enter your first name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+              className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Last Name</label>
+            <input
+              type="text"
+              placeholder="Enter your last name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+              className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
+            />
+          </div>
+
+          <div className="relative">
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
+            />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2  cursor-pointer text-sm select-none"
+            >
+              {showPassword ? <Hide /> : <Show />}
+            </span>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Address</label>
+            <input
+              type="text"
+              placeholder="Enter your address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              required
+              className="w-full px-4 py-2 rounded-lg bg-[#F0E8E8] focus:outline-gray-500"
+            />
+          </div>
 
           <button
             type="submit"

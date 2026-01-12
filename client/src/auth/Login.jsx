@@ -8,10 +8,13 @@ import { useState, useContext } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import { toast } from "react-toastify";
 import { useSubmit } from "@/app/hooks/useSubmit";
+import Hide from "@/UI/Hide";
+import Show from "@/UI/Show";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { login } = useContext(AuthContext);
   const { loading, handleSubmit: safeSubmit } = useSubmit();
@@ -75,16 +78,23 @@ const Login = () => {
             />
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium mb-1">Password</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
               className="w-full px-4 py-2 rounded-lg focus:outline-gray-500 bg-[#F0E8E8]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 cursor-pointer text-sm select-none"
+            >
+              {showPassword ? <Hide /> : <Show />}
+            </span>
           </div>
 
           <button
