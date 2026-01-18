@@ -107,7 +107,7 @@ const Product = () => {
   };
 
   return (
-    <main className="max-w-[1400px] mx-auto min-h-screen flex-col items-center justify-center px-16 rounded-2xl mb-4 bg-[#F0E8E8]">
+    <main className="max-w-[1400px] mx-auto min-h-screen flex-col items-center justify-center px-16 pt-5 rounded-2xl mb-4 bg-[#F0E8E8]">
       <div className="flex justify-start mb-4">
         <h2 className="text-3xl font-bold">Products</h2>
       </div>
@@ -121,7 +121,7 @@ const Product = () => {
               return (
                 <div
                   key={item._id}
-                  className="w-[250px] rounded-md p-5 shadow-md bg-white cursor-pointer hover:shadow-lg transition"
+                  className="w-[250px] rounded-md p-5 shadow-md bg-white cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-200"
                   onClick={() => goToProductDetails(item._id)}
                 >
                   <div className="h-[200px] bg-gray-200 flex items-center justify-center rounded-md overflow-hidden">
