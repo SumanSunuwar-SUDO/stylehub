@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import TextType from "./TextType";
+import Magnet from "./Magnet";
+import Forward from "@/UI/Forward";
 
 // Fallback icon
 let ForwardIcon;
@@ -102,7 +104,7 @@ export default function Hero() {
               className="object-cover"
             />
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black/50" />
+            <div className="absolute inset-0 bg-black/60" />
           </div>
         ))}
       </div>
@@ -135,14 +137,22 @@ export default function Hero() {
           Fashion that fits your lifestyle — modern, comfortable, and made for
           everyday confidence.
         </p>
+
         <button
           onClick={handleExploreClick}
           className="group flex items-center gap-2 rounded-full bg-white hover:bg-[#E67514] px-8 py-4 text-lg font-semibold text-black transition-all hover:scale-105 hover:shadow-2xl active:scale-95 duration-300"
           aria-label="Explore products"
         >
           {" "}
-          Explore Products{" "}
-          <ForwardIcon className="transition-transform group-hover:translate-x-1" />{" "}
+          <Magnet padding={210} magnetStrength={9}>
+            <div className="flex items-center gap-2">
+              <p>Explore Products </p>
+
+              <span>
+                <Forward />
+              </span>
+            </div>
+          </Magnet>
         </button>
       </div>
 
@@ -158,7 +168,7 @@ export default function Hero() {
             onClick={() => goToSlide(index)}
             aria-label={`Go to slide ${index + 1}`}
             aria-current={index === current % images.length ? "true" : "false"}
-            className={`h-2 w-4 rounded-full transition-all duration-300 ${
+            className={`h-2 w-3 rounded-full transition-all duration-300 ${
               index === current % images.length
                 ? "bg-white scale-125"
                 : "bg-gray-300 hover:bg-gray-100"

@@ -20,6 +20,7 @@ const Navbar = () => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [showSearch, setShowSearch] = useState(false);
   const searchRef = useRef(null);
 
   // Toggle profile dropdown
@@ -60,7 +61,7 @@ const Navbar = () => {
 
     try {
       const res = await axios.get(
-        `${baseURL}/products/read?search=${encodeURIComponent(value)}`
+        `${baseURL}/products/read?search=${encodeURIComponent(value)}`,
       );
       setSearchResults(res.data.result || []);
     } catch (err) {
@@ -80,62 +81,156 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const navItems = [
+    { label: "Home", href: "/" },
+    { label: "About", href: "/abouts" },
+    { label: "Contact", href: "/contacts" },
+    { label: "Products", href: "/products" },
+  ];
   return (
-    <nav className="h-[70px] bg-[#E67514] w-full">
-      <div className="flex justify-between items-center container mx-auto h-full px-20">
+    <nav className="h-[70px]  bg-white/90 ">
+      <div className="max-w-[1400px] flex justify-between items-center container mx-auto h-full">
         {/* Logo */}
-        <Link href="/" className="text-[24px] text-white font-bold">
-          Style<span className="text-blue-700">Hub</span>
-        </Link>
+        <div className="flex items-center justify-between w-[70%]">
+          <Link
+            href="/"
+            className="h-15 w-15 text-[24px] text-white font-bold flex items-center"
+          >
+            <img src="images/logo.png" alt="StyleHub" className="object-fill" />
+          </Link>
 
-        {/* Links */}
-        <ul className="flex justify-center items-center gap-5 font-semibold text-xl pl-5">
-          <li>
-            <Link href="/">Home</Link>
-          </li>
-          <li>
-            <Link href="/products">Products</Link>
-          </li>
+          {/* Links */}
+          <ul className="flex justify-center items-center ">
+            {navItems.map((value, i) => {
+              return (
+                <ul key={value.label}>
+                  <Link href={value.href} className="navLink">
+                    {value.label}
+                  </Link>
+                </ul>
+              );
+            })}
+            <li className="relative group">
+              <span className="cursor-pointer navLink">Categories</span>
+              <div className="absolute top-full left-0 bg-white shadow-2xl rounded-lg mt-3 min-w-[220px] z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out overflow-hidden">
+                {categories.length > 0 ? (
+                  categories.map((mainCat, index) => (
+                    <div
+                      key={mainCat._id}
+                      className={index !== 0 ? "border-t border-gray-100" : ""}
+                    >
+                      <div className="px-5 py-3 font-bold">{mainCat._id}</div>
+                      {mainCat.subCategories.map((sub) => (
+                        <Link
+                          key={sub}
+                          href={`/products?subCategory=${encodeURIComponent(
+                            sub,
+                          )}`}
+                          className="block px-4 py-2 rounded-sm hover:bg-[#F16D34] hover:text-white hover:scale-105 transition-all ease-out duration-200"
+                        >
+                          {sub}
+                        </Link>
+                      ))}
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-5 py-3 text-gray-400">No categories</div>
+                )}
+              </div>
+            </li>
 
-          <li className="relative text-xl group">
-            <span className="cursor-pointer">Categories</span>
-            <div className="absolute top-full left-0 bg-white shadow-2xl rounded-lg mt-3 min-w-[220px] z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out overflow-hidden">
-              {categories.length > 0 ? (
-                categories.map((mainCat, index) => (
-                  <div
-                    key={mainCat._id}
-                    className={index !== 0 ? "border-t border-gray-100" : ""}
-                  >
-                    <div className="px-5 py-3 font-bold">{mainCat._id}</div>
-                    {mainCat.subCategories.map((sub) => (
-                      <Link
-                        key={sub}
-                        href={`/products?subCategory=${encodeURIComponent(
-                          sub
-                        )}`}
-                        className="block px-6 py-2.5 text-gray-700 hover:pl-7 hover:bg-gray-100 transition-all duration-200"
-                      >
-                        {sub}
-                      </Link>
-                    ))}
-                  </div>
-                ))
-              ) : (
-                <div className="px-5 py-3 text-gray-400">No categories</div>
-              )}
-            </div>
-          </li>
-
-          <li>
-            <Link href="/products?category=men">Men</Link>
-          </li>
-          <li>
-            <Link href="/products?category=women">Women</Link>
-          </li>
-        </ul>
+            <li>
+              <Link href="/products?category=men" className="navLink">
+                Men
+              </Link>
+            </li>
+            <li>
+              <Link href="/products?category=women" className="navLink">
+                Women
+              </Link>
+            </li>
+          </ul>
+        </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-4 relative">
+        <div className="flex items-center justify-end gap-4 relative h-full w-[30%]">
+          {/* Search */}
+          <div
+            ref={searchRef}
+            className="relative h-full flex items-center group"
+            onMouseEnter={() => setShowSearch(true)}
+            onMouseLeave={() => {
+              setShowSearch(false);
+              setSearchResults([]);
+              setSearchTerm("");
+            }}
+          >
+            {/* Search Icon Button */}
+            {!showSearch && (
+              <button className="text-gray-600 hover:text-black flex items-center justify-center h-full">
+                <Search />
+              </button>
+            )}
+
+            {/* Search Input */}
+            {showSearch && (
+              <div className="relative w-[280px] search-input-container">
+                <button
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-600 hover:text-black flex items-center justify-center"
+                  onClick={() => {
+                    if (!searchTerm.trim()) return;
+                    router.push(
+                      `/products?search=${encodeURIComponent(searchTerm)}`,
+                    );
+                    setSearchTerm("");
+                    setSearchResults([]);
+                    setShowSearch(false);
+                  }}
+                >
+                  <Search />
+                </button>
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Search products..."
+                  className="w-full pl-10 pr-4 py-1.5 bg-white rounded-4xl outline-none border-2 border-gray-600 search-input-field"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (!searchTerm.trim()) return;
+                      router.push(
+                        `/products?search=${encodeURIComponent(searchTerm)}`,
+                      );
+                      setSearchTerm("");
+                      setSearchResults([]);
+                      setShowSearch(false);
+                    }
+                  }}
+                />
+
+                {/* Live search dropdown */}
+                {searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded-md mt-1 max-h-64 overflow-y-auto z-50">
+                    {searchResults.map((product) => (
+                      <div
+                        key={product._id}
+                        className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                        onClick={() => {
+                          router.push(`/products/${product._id}`);
+                          setSearchResults([]);
+                          setSearchTerm("");
+                          setShowSearch(false);
+                        }}
+                      >
+                        {product.productName}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           {/* Cart */}
           <div className="relative cursor-pointer" onClick={cartClick}>
             <Cart />
@@ -146,54 +241,11 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Search */}
-          <div ref={searchRef} className="relative w-[250px]">
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="w-full px-4 py-1.5 pr-10 bg-white rounded-md outline-none"
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-            <button
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"
-              onClick={() => {
-                if (!searchTerm.trim()) return;
-                router.push(
-                  `/products?search=${encodeURIComponent(searchTerm)}`
-                );
-                setSearchTerm("");
-                setSearchResults([]);
-              }}
-            >
-              <Search />
-            </button>
-
-            {/* Live search dropdown */}
-            {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded-md mt-1 max-h-64 overflow-y-auto z-50">
-                {searchResults.map((product) => (
-                  <div
-                    key={product._id}
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                    onClick={() => {
-                      router.push(`/products/${product._id}`);
-                      setSearchResults([]);
-                      setSearchTerm("");
-                    }}
-                  >
-                    {product.productName}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Profile/Login */}
           {isLoggedIn && user ? (
             <div className="relative">
               <span
-                className="h-[35px] w-[35px] rounded-full bg-blue-600 cursor-pointer text-white text-xl font-semibold flex justify-center items-center hover:bg-blue-700"
+                className="h-8 w-8 rounded-full bg-orange-400 navLink cursor-pointer text-white font-semibold flex justify-center items-center hover:bg-blue-700"
                 onClick={toggleDetails}
               >
                 {user.name?.charAt(0).toUpperCase() || "U"}
