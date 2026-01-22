@@ -3,7 +3,6 @@ import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import RouteLoader from "./(main)/components/RouteLoader";
 import { Inter } from "next/font/google";
 
 const inter = Inter({
@@ -22,7 +21,6 @@ export default function RootLayout({ children }) {
       <body className={`${inter.className} antialiased  bg-[#F0E8E8]`}>
         <AuthProvider>
           <CartProvider>
-            <RouteLoader />
             {children}
             <ToastContainer
               position="top-right"
