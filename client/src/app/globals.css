@@ -191,4 +191,16 @@
   .navLink {
     @apply px-4 py-2 rounded-sm hover:bg-[#F16D34] hover:text-white hover:scale-105 transition-all ease-out duration-200;
   }
+
+  .btns {
+    @apply border-gray-600 px-3 py-2 bg-[#F0E8E8] rounded-xl text-sm  hover:bg-[#F16D34] hover:text-white transition-all duration-250;
+  }
+
+  .btn {
+    @apply px-10 py-3 border rounded-2xl bg-[#F0E8E8] hover:bg-[#F16D34] hover:text-white transition;
+  }
+
+  .toph {
+    @apply text-2xl font-bold;
+  }
 }

@@ -9,6 +9,7 @@ import Minus from "@/UI/Minus";
 import Back from "@/UI/Back";
 import { CartContext } from "@/context/CartContext";
 import { toast } from "react-toastify";
+import Product from "@/app/(main)/components/Product";
 
 const ProductDetails = () => {
   const [product, setProduct] = useState(null);
@@ -66,12 +67,12 @@ const ProductDetails = () => {
           ? product.image
           : `${baseURL}/images/${product.image}`,
       },
-      count
+      count,
     );
 
     if (success) {
       toast.success(
-        `${product.productName} (${selectedSize.size}) added to cart!`
+        `${product.productName} (${selectedSize.size}) added to cart!`,
       );
     }
   };
@@ -96,7 +97,7 @@ const ProductDetails = () => {
 
     localStorage.setItem("buyNowCart", JSON.stringify(buyNowCart));
     toast.success(
-      `${product.productName} (${selectedSize.size}) - Proceeding to checkout`
+      `${product.productName} (${selectedSize.size}) - Proceeding to checkout`,
     );
     router.push("/checkout");
   };
@@ -109,9 +110,9 @@ const ProductDetails = () => {
     );
 
   return (
-    <main className="max-w-[1400px] mx-auto flex-col items-center justify-center px-16 my-10">
+    <main className="max-w-[1400px] mx-auto flex-col items-center justify-center my-10">
       {/* Header */}
-      <div className="flex items-center text-3xl font-bold mb-5">
+      <div className="flex items-center toph mb-5">
         <span
           className="py-2 pr-3 cursor-pointer"
           onClick={() => router.back() || router.push("/")}
@@ -123,7 +124,7 @@ const ProductDetails = () => {
 
       {/* Product container */}
       <div className="flex justify-center">
-        <div className="w-full max-w-[1000px] flex-col bg-white rounded-2xl mt-5 shadow-2xl overflow-hidden">
+        <div className="w-full max-w-[1000px] flex-col bg-white rounded-2xl mt-5 shadow-xl overflow-hidden">
           <div className="flex flex-col lg:flex-row">
             {/* Product Image */}
             <div className="h-[350px] w-[350px] m-10 bg-gray-200 flex items-center justify-center rounded-2xl overflow-hidden">
@@ -142,19 +143,19 @@ const ProductDetails = () => {
             <div className="mx-5 mt-10 flex-1">
               <h1 className="text-2xl font-bold">{product.productName}</h1>
 
-              <p className="mt-3 text-xl font-medium">
+              <p className="mt-3 text-xl">
                 Category: {product.gender || product.category || "N/A"}
               </p>
 
               {/* Size Selection */}
               {product.sizes && product.sizes.length > 0 && (
-                <div className="my-2 text-xl font-medium">
-                  <label className="font-semibold">Select Size: </label>
+                <div className="my-2 text-xl">
+                  <label className="">Select Size: </label>
                   <select
                     value={selectedSize?.size || ""}
                     onChange={(e) => {
                       const newSize = product.sizes.find(
-                        (s) => s.size === e.target.value
+                        (s) => s.size === e.target.value,
                       );
                       setSelectedSize(newSize);
                       setCount(1);
@@ -172,7 +173,7 @@ const ProductDetails = () => {
                     ))}
                   </select>
                   {selectedSize && (
-                    <p className="mt-2 text-xl font-semibold">
+                    <p className="mt-2 text-xl ">
                       Price: Rs.{selectedSize.price}
                     </p>
                   )}
@@ -180,7 +181,7 @@ const ProductDetails = () => {
               )}
 
               {/* Quantity */}
-              <div className="flex gap-2 items-center mt-2 text-xl font-semibold">
+              <div className="flex gap-2 items-center mt-2 text-xl ">
                 <h1>Quantity:</h1>
                 <button
                   className="px-2 py-2 rounded-xl bg-[#F0E8E8]"
@@ -201,14 +202,14 @@ const ProductDetails = () => {
               {/* Buttons */}
               <div className="flex gap-5 mt-3">
                 <button
-                  className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8] hover:bg-blue-500 hover:text-white transition"
+                  className="btn"
                   onClick={handleAddToCart}
                   disabled={!selectedSize || selectedSize.quantity === 0}
                 >
                   Add to Cart
                 </button>
                 <button
-                  className="px-10 py-3 font-semibold border rounded-2xl bg-[#F0E8E8] hover:bg-blue-500 hover:text-white transition"
+                  className="btn"
                   onClick={buyNowHandler}
                   disabled={!selectedSize || selectedSize.quantity === 0}
                 >
@@ -226,6 +227,11 @@ const ProductDetails = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="mt-10">
+        <h2 className="text-2xl font-bold mb-4">You may also like</h2>
+        <Product limit={5} />
       </div>
     </main>
   );
