@@ -9,39 +9,44 @@ import React from "react";
 const Footer = () => {
   const quickLinks = [
     { label: "Home", href: "/" },
+    { label: "About Us", href: "/" },
+    { label: "Contact Us", href: "/" },
     { label: "Products", href: "/products" },
-    { label: "Categories", href: "/categories" },
+  ];
+
+  const mediaItems = [
+    { label: "Facebook", icon: <Facebook />, href: "#" },
+    { label: "Instagram", icon: <Instagram />, href: "#" },
+    { label: "TikTok", icon: <Tiktok />, href: "#" },
   ];
   return (
-    <footer className="bg-[#E67514] w-full mt-10">
+    <footer className="bg-white/90 w-full mt-10">
       <div className="flex flex-col md:flex-row justify-between items-start container mx-auto px-15 py-7 gap-8">
         {/* Brand */}
         <div className="w-[35%]">
-          <h1 className="text-2xl text-white font-bold mb-2">
-            Style<span className="text-blue-700">Hub</span>
-          </h1>
+          <Link href="/" className="h-20 w-20  flex items-center">
+            <img src="images/logo.png" alt="StyleHub" className="object-fill" />
+          </Link>
           <p className="text-justify">
             StyleHub is your one-stop destination for trendy fashion and
             lifestyle essentials, offering the latest styles to keep you looking
             and feeling your best.
           </p>
         </div>
-
         {/* Quick Links */}
         <div className="">
-          <h2 className="text-xl font-bold mb-2">Quick Links</h2>
+          <h2 className="text-xl font-semibold mb-2">Quick Links</h2>
           <ul className="space-y-1">
             {quickLinks.map((link) => (
-              <li key={link.label} className="hover:underline">
+              <li key={link.label} className=" hover:underline">
                 <Link href={link.href}>{link.label}</Link>
               </li>
             ))}
           </ul>
         </div>
-
         {/* Contact */}
         <div className="">
-          <h2 className="text-xl font-bold mb-2">Connect With Us</h2>
+          <h2 className="text-xl font-semibold mb-2">Connect With Us</h2>
           <ul className="space-y-1">
             <li className="hover:underline">Email: stylehub@gmail.com</li>
             <li>Location: Gokarneshwor, Kathmandu</li>
@@ -51,9 +56,15 @@ const Footer = () => {
             Stay connected with StyleHub on social media:
           </p>
           <div className="flex gap-4 mt-3">
-            <Facebook />
-            <Instagram />
-            <Tiktok />
+            {mediaItems.map((item, index) => (
+              <Link
+                key={index}
+                href={item.href}
+                className="hover:scale-110 transition-transform duration-200"
+              >
+                {item.icon}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
