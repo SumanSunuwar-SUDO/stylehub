@@ -208,7 +208,7 @@ const Product = ({ limit }) => {
                 <div className="w-full flex justify-center mt-6">
                   <button
                     onClick={() => router.push("/products")}
-                    className="flex gap-2 px-6 py-3 bg-[#ffff] text-black shadow-md hover:shadow-xl rounded-4xl hover:bg-orange-600 hover:text-white hover:scale-105 transition-all"
+                    className="flex gap-2 px-8 py-4 bg-[#ffff] text-black shadow-md hover:shadow-xl rounded-4xl hover:bg-[#E67514] hover:text-white hover:scale-105 transition-all"
                   >
                     View All Products
                     <Forward />
