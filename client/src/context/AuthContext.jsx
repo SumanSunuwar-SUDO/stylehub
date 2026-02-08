@@ -1,4 +1,5 @@
 "use client";
+import Cookies from "js-cookie";
 import React, { createContext, useState, useEffect } from "react";
 
 export const AuthContext = createContext();
@@ -7,7 +8,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Load user from localStorage on mount
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const userData =
@@ -28,6 +28,8 @@ export const AuthProvider = ({ children }) => {
   const login = (userData, token) => {
     localStorage.setItem("accessToken", token);
     localStorage.setItem("user", JSON.stringify(userData));
+    Cookies.set("userData", JSON.stringify(userData), { expires: 7 });
+    Cookies.set("accessToken", token, { expires: 7 });
     setUser(userData);
     setIsLoggedIn(true);
   };
@@ -37,6 +39,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
     localStorage.removeItem("userData");
+    Cookies.remove("userData");
+    Cookies.remove("accessToken");
     setUser(null);
     setIsLoggedIn(false);
   };

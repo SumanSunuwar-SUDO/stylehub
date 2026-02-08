@@ -1,7 +1,7 @@
 exports.fileUpload = (req, res, next) => {
   try {
-    console.log(req.file.filename);
-    let link = `http://localhost:9000/images/${req.file.filename}`;
+    console.log(req.file);
+    let link = req.file.path;
     res.status(200).json({
       success: true,
       message: "File uploaded successfully",
