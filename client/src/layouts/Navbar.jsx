@@ -89,13 +89,13 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="h-[70px]  bg-white/90 ">
+    <nav className="h-[80px]  bg-white/90 ">
       <div className="max-w-[1400px] flex justify-between items-center container mx-auto h-full">
         {/* Logo */}
         <div className="flex items-center justify-between w-[70%]">
           <Link
             href="/"
-            className="h-15 w-15 text-[24px] text-white font-bold flex items-center"
+            className="h-20 w-20 text-[24px] text-white font-bold flex items-center"
           >
             <img src="images/logo.png" alt="StyleHub" className="object-fill" />
           </Link>
