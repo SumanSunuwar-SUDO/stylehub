@@ -83,10 +83,11 @@ const Navbar = () => {
 
   const navItems = [
     { label: "Home", href: "/" },
-    { label: "About", href: "/abouts" },
-    { label: "Contact", href: "/contacts" },
+    { label: "About Us", href: "/about" },
+    { label: "Contact Us", href: "/contact" },
     { label: "Products", href: "/products" },
   ];
+
   return (
     <nav className="h-[70px]  bg-white/90 ">
       <div className="max-w-[1400px] flex justify-between items-center container mx-auto h-full">
