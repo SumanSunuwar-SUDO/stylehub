@@ -40,7 +40,7 @@ const Register = () => {
 
       if (result.data.success) {
         toast.success(
-          "Registration successful! Please check your email to verify."
+          "Registration successful! Please check your email to verify.",
         );
 
         setFirstName("");
@@ -67,13 +67,24 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F0E8E8]">
-      <div className="w-full max-w-[600px] bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">User Register</h1>
-        <p className="text-center text-gray-500 mb-6">Create your account</p>
+      <div className="w-full max-w-[600px] bg-white rounded-2xl shadow-sm p-8">
+        <div className="flex justify-start items-center">
+          <div className="h-20 w-20">
+            <img src="images/logo.png" alt="StyleHub" className="object-fill" />
+          </div>
+          <div className="pl-3 flex flex-col justify-center items-start mb-5">
+            <h1 className="text-2xl font-bold text-center">User Register</h1>
+            <p className="text-center text-gray-500">Create your account</p>
+          </div>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-          <div>
-            <label className="block text-sm font-medium mb-1">First Name</label>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 text-sm"
+          autoComplete="off"
+        >
+          <div className="text-sm">
+            <label className="block font-medium mb-1">First Name</label>
             <input
               type="text"
               placeholder="Enter your first name"
@@ -141,7 +152,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-lg font-semibold transition-all duration-300 ${
+            className={`w-full py-2 rounded-lg transition-all duration-300 ${
               loading
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-[#F0E8E8] hover:bg-blue-500 hover:text-white"

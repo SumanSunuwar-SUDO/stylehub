@@ -61,11 +61,22 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F0E8E8]">
-      <div className="w-full max-w-[600px] bg-[#ffffff] rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">User Login</h1>
-        <p className="text-center text-gray-500 mb-6">Login to your account</p>
+      <div className="w-full max-w-[600px] bg-[#ffffff] rounded-2xl shadow-sm p-8">
+        <div className="flex justify-start items-center">
+          <div className="h-20 w-20">
+            <img src="images/logo.png" alt="StyleHub" className="object-fill" />
+          </div>
+          <div className="pl-3 flex flex-col justify-center items-start mb-5">
+            <h1 className="text-2xl font-bold text-center">User Login</h1>
+            <p className="text-center text-gray-500">Login to your account</p>
+          </div>
+        </div>
 
-        <form autoComplete="off" onSubmit={handleSubmit} className="space-y-4">
+        <form
+          autoComplete="off"
+          onSubmit={handleSubmit}
+          className="space-y-4 text-sm"
+        >
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
             <input
