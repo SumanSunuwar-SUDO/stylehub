@@ -112,7 +112,10 @@ export default function Hero() {
       {/* Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-10 px-4">
         <h1 className="mb-4 text-5xl font-extrabold tracking-tight md:text-6xl lg:text-7xl">
-          Welcome to <span className="text-[#E67514]">StyleHub</span>
+          Welcome to{" "}
+          <span className="bg-linear-to-r from-white via-orange-400 to-orange-500 bg-clip-text text-transparent">
+            StyleHub
+          </span>
         </h1>
 
         {/* Typing Text */}
