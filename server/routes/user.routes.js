@@ -18,7 +18,7 @@ const userRouter = Router();
 userRouter.route("/create").post(createUser);
 userRouter.route("/verify-mail").get(verifyEmail);
 userRouter.route("/resend-verification").post(resendVerificationEmail);
-userRouter.route("/reset-passowrd").post(isAuthenticated, resetPassword);
+userRouter.route("/reset-password").post(resetPassword);
 
 userRouter
   .route("/read")

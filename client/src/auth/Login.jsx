@@ -107,11 +107,19 @@ const Login = () => {
               {showPassword ? <Hide /> : <Show />}
             </span>
           </div>
+          <p className="text-end text-sm mt-2">
+            <Link
+              href="/forgot-password"
+              className="text-gray-800 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </p>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-lg transition-all duration-300 ${
+            className={`w-full py-2 rounded-lg font-medium transition-all duration-300 ${
               loading
                 ? "bg-gray-400 cursor-not-allowed text-black"
                 : "bg-[#F0E8E8] text-black hover:bg-blue-600 hover:text-white"

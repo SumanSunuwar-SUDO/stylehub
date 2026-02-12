@@ -246,7 +246,7 @@ const Navbar = () => {
           {isLoggedIn && user ? (
             <div className="relative">
               <span
-                className="h-8 w-8 rounded-full bg-orange-400 navLink cursor-pointer text-white font-semibold flex justify-center items-center hover:bg-blue-700"
+                className="h-8 w-8 rounded-full bg-orange-500 cursor-pointer text-white font-semibold flex justify-center items-center hover:bg-orange-600"
                 onClick={toggleDetails}
               >
                 {user.name?.charAt(0).toUpperCase() || "U"}

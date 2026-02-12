@@ -91,6 +91,7 @@ exports.verifyEmail = async (req, res) => {
     });
   }
 };
+
 exports.resendVerificationEmail = async (req, res) => {
   try {
     const { email } = req.body;
@@ -209,20 +210,25 @@ exports.forgotPassword = async (req, res, next) => {
 
     const token = jwt.sign({ id: user._id }, secretKey, { expiresIn: "1d" });
 
+    // Save token to user
+    user.resetToken = token;
+    await user.save();
+
+    // Send email
     await sendEmail({
       to: email,
       subject: "Reset Password",
       html: `
-        <h2>Password Reset</h2>
-        <a href="http://localhost:3000/reset-password?token=${token}">
-          Reset your password
-        </a>
-      `,
+    <h2>Password Reset</h2>
+    <a href="http://localhost:3000/reset-password?token=${token}">
+    Reset your password
+    </a>
+  `,
     });
 
     return res.status(200).json({
       success: true,
-      message: "Password reset link sent",
+      message: "Password reset link sent successfully",
     });
   } catch (error) {
     return res.status(500).json({
@@ -231,24 +237,48 @@ exports.forgotPassword = async (req, res, next) => {
     });
   }
 };
-
 exports.resetPassword = async (req, res, next) => {
   try {
-    let password = req.body.password;
-    let hashedPassword = await bcrypt.hash(password, 10);
-    let user = await UserModel.findByIdAndUpdate(
-      req._id,
-      { password: hashedPassword },
-      { new: true }
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and new password are required",
+      });
+    }
+
+    // Verify JWT
+    let payload;
+    try {
+      payload = jwt.verify(token, secretKey);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired token",
+      });
+    }
+
+    // Find user by ID from token payload
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      payload.id,
+      { password: await bcrypt.hash(newPassword.trim(), 10) },
+      { new: true },
     );
+
+    if (!updatedUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     res.status(200).json({
       success: true,
       message: "Password reset successfully",
-      result: user,
     });
   } catch (error) {
-    res.status(200).json({
+    res.status(500).json({
       success: false,
       message: error.message,
     });
