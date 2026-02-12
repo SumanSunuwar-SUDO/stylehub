@@ -17,10 +17,10 @@ L.Icon.Default.mergeOptions({
 });
 
 const KtmMap = () => {
-  const position = [27.7179, 85.366]; // Gokarneshwor
+  const position = [27.751501257971672, 85.39131030646053]; // Gokarneshwor
 
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full h-[500px] rounded-2xl overflow-hidden shadow-md">
       <MapContainer
         center={position}
         zoom={15}
@@ -31,7 +31,13 @@ const KtmMap = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
         <Marker position={position}>
-          <Popup>Gokarneshwor, Kathmandu</Popup>
+          <Popup>
+            <span className="text-xl font-semibold text-orange-500">
+              StyleHub
+            </span>
+            <br />
+            Gokarneshwor, Kathmandu
+          </Popup>
         </Marker>
       </MapContainer>
     </div>

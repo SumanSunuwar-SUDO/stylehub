@@ -12,6 +12,7 @@ const userRouter = require("./routes/user.routes");
 const orderRouter = require("./routes/order.route");
 const dashboardRouter = require("./routes/dashboard.route");
 const categoryRoute = require("./routes/category.route");
+const contactRouter = require("./routes/contact.route");
 
 var app = express();
 
@@ -34,6 +35,7 @@ app.use("/api/orders", orderRouter);
 app.use("/api/file", require("./routes/file.route").fileRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/categories", categoryRoute);
+app.use("/api/contact", contactRouter);
 
 // 404
 app.use(function (req, res, next) {
