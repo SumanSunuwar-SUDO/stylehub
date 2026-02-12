@@ -5,6 +5,8 @@ import Search from "@/UI/Search";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import AreaChart from "../components/AreaChart";
+import CategoryPieChart from "../components/PieChart";
 
 const page = () => {
   const [stats, setStats] = useState({
@@ -36,24 +38,36 @@ const page = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="flex flex-wrap gap-4 mt-5 px-5">
-        <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
-          <h2 className="text-xl font-medium mb-2">Total Sales</h2>
-          <h1 className="text-xl font-bold">NRP.{stats.totalSales}</h1>
+      <section>
+        <div className="flex flex-wrap gap-4 mt-5 px-5">
+          <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
+            <h2 className="text-xl font-medium mb-2">Total Sales</h2>
+            <h1 className="text-xl font-bold">NRP.{stats.totalSales}</h1>
+          </div>
+          <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
+            <h2 className="text-xl font-medium mb-2">Total Orders</h2>
+            <h1 className="text-xl font-bold">{stats.totalOrders}</h1>
+          </div>
+          <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
+            <h2 className="text-xl font-medium mb-2">Pending Payments</h2>
+            <h1 className="text-xl font-bold">{stats.pendignPayments}</h1>
+          </div>
+          <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
+            <h2 className="text-xl font-medium mb-2">Total Customers</h2>
+            <h1 className="text-xl font-bold">{stats.totalCustomers}</h1>
+          </div>
         </div>
-        <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
-          <h2 className="text-xl font-medium mb-2">Total Orders</h2>
-          <h1 className="text-xl font-bold">{stats.totalOrders}</h1>
+      </section>
+      <section className="flex justify-start items-center px-5 mt-5">
+        <div className="h-[400px] w-[600px] ">
+          <AreaChart />
+          <p className="text-center mt-2">Monthly Sales Overview</p>
         </div>
-        <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
-          <h2 className="text-xl font-medium mb-2">Pending Payments</h2>
-          <h1 className="text-xl font-bold">{stats.pendignPayments}</h1>
+        <div className="h-[300px] w-[300px] ml-10">
+          <CategoryPieChart />
+          <p className="text-center mt-2">Sales by Category</p>
         </div>
-        <div className="bg-white rounded-md px-6 py-4 flex-1 min-w-[200px]">
-          <h2 className="text-xl font-medium mb-2">Total Customers</h2>
-          <h1 className="text-xl font-bold">{stats.totalCustomers}</h1>
-        </div>
-      </div>
+      </section>
     </main>
   );
 };

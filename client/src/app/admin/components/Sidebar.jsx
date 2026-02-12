@@ -30,10 +30,10 @@ export default function Sidebar() {
             <Link
               key={link.label}
               href={link.href}
-              className={`p-2 rounded transition-all duration-300 hover:pl-5 hover:text-xl ${
+              className={`p-2 rounded transition-all duration-300 hover:pl-5 ${
                 router.pathname === link.href
                   ? "bg-gray-300 font-semibold"
-                  : "hover:bg-gray-400"
+                  : "hover:border-2 hover:border-gray-600"
               }`}
             >
               {link.label}
