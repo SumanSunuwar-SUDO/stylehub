@@ -203,6 +203,8 @@ exports.initiateEsewaPayment = async (req, res) => {
         price: item.price,
         quantity: item.quantity,
         size: item.size,
+        mainCategory: product.mainCategory,
+        subCategory: product.subCategory,
         image: item.image,
         subTotal: item.price * item.quantity,
       });
