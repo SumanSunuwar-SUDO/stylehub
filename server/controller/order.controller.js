@@ -66,6 +66,8 @@ exports.createOrder = async (req, res) => {
         price: item.price,
         quantity: item.quantity,
         size: item.size,
+        mainCategory: product.mainCategory,
+        subCategory: product.subCategory,
         image: item.image,
         subTotal: item.price * item.quantity,
       });
@@ -123,7 +125,7 @@ exports.createOrder = async (req, res) => {
             <strong>NPR ${item.price}</strong>
           </div>
         </li>
-      `
+      `,
         )
         .join("")}
     </ul>
@@ -262,7 +264,7 @@ exports.esewaSuccess = async (req, res) => {
     let decoded;
     try {
       decoded = JSON.parse(
-        Buffer.from(req.query.data, "base64").toString("utf-8")
+        Buffer.from(req.query.data, "base64").toString("utf-8"),
       );
     } catch (err) {
       return res

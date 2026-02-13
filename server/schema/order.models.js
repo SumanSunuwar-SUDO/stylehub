@@ -4,6 +4,8 @@ const orderItemSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
   productName: String,
   price: Number,
+  mainCategory: String,
+  subCategory: String,
   quantity: Number,
   size: { type: String, required: true },
   image: String,
@@ -45,7 +47,7 @@ const orderSchema = new mongoose.Schema(
 
     deliveredDate: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 orderSchema.methods.updateStatus = function (status) {

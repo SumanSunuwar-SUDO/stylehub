@@ -79,14 +79,14 @@ exports.categorySales = async (req, res, next) => {
         },
       },
       {
-        $unwind: "$products",
+        $unwind: "$items",
       },
       {
         $group: {
-          _id: "$products.category",
+          _id: "$items.subCategory",
           totalRevenue: {
             $sum: {
-              $multiply: ["$products.price", "$products.quantity"],
+              $multiply: ["$items.price", "$items.quantity"],
             },
           },
         },
@@ -97,6 +97,9 @@ exports.categorySales = async (req, res, next) => {
           value: "$totalRevenue",
           _id: 0,
         },
+      },
+      {
+        $sort: { value: -1 },
       },
     ]);
 

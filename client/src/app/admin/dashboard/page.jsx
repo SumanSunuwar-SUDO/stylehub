@@ -1,7 +1,6 @@
 "use client";
 
 import { baseURL } from "@/config/env";
-import Search from "@/UI/Search";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -58,14 +57,14 @@ const page = () => {
           </div>
         </div>
       </section>
-      <section className="flex justify-start items-center px-5 mt-5">
+      <section className="flex justify-around items-center px-5 mt-6">
         <div className="h-[400px] w-[600px] ">
           <AreaChart />
           <p className="text-center mt-2">Monthly Sales Overview</p>
         </div>
-        <div className="h-[300px] w-[300px] ml-10">
+        <div className="h-[450px] w-[600px] flex flex-col items-center justify-center">
           <CategoryPieChart />
-          <p className="text-center mt-2">Sales by Category</p>
+          <p className="mt-2">Sales by Category</p>
         </div>
       </section>
     </main>
