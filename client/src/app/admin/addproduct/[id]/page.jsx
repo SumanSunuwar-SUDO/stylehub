@@ -19,10 +19,10 @@ const EditProductPage = () => {
     description: "",
     image: "",
   });
-
   const [sizes, setSizes] = useState([]);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const mainCategories = {
@@ -58,7 +58,6 @@ const EditProductPage = () => {
           description: prod.description,
           image: prod.image,
         });
-
         setSizes(prod.sizes || []);
         setPreview(prod.image);
       } catch (err) {
@@ -71,13 +70,11 @@ const EditProductPage = () => {
     fetchProduct();
   }, [productId, router]);
 
-  // Input change handler
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
 
-  // Image upload handler
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) {
@@ -93,13 +90,10 @@ const EditProductPage = () => {
 
     try {
       setUploading(true);
-
       const res = await axios.post(`${baseURL}/file/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       setProduct((prev) => ({ ...prev, image: res.data.imageUrl }));
-
       toast.success("Image uploaded successfully");
     } catch (err) {
       console.error("Image upload failed", err);
@@ -109,20 +103,30 @@ const EditProductPage = () => {
     }
   };
 
-  // Submit update handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!product.image) {
-      toast.error("Please upload an image");
-      return;
+    // Full Validation
+    if (!product.productName.trim())
+      return toast.error("Product name is required");
+    if (!product.mainCategory) return toast.error("Main category is required");
+    if (!product.gender) return toast.error("Gender is required");
+    if (!product.subCategory) return toast.error("Subcategory is required");
+    if (!product.description.trim())
+      return toast.error("Description is required");
+    if (!product.image) return toast.error("Product image is required");
+    if (sizes.length === 0) return toast.error("Add at least one size");
+
+    for (let i = 0; i < sizes.length; i++) {
+      const s = sizes[i];
+      if (!s.size) return toast.error(`Size at row ${i + 1} is missing`);
+      if (s.quantity === "" || s.quantity < 0)
+        return toast.error(`Quantity at row ${i + 1} is invalid`);
+      if (s.price === "" || s.price < 0)
+        return toast.error(`Price at row ${i + 1} is invalid`);
     }
 
-    if (sizes.length === 0) {
-      toast.error("Add at least one size");
-      return;
-    }
-
+    setLoading(true);
     const payload = { ...product, sizes };
     const token = localStorage.getItem("accessToken");
 
@@ -135,13 +139,14 @@ const EditProductPage = () => {
       router.push("/admin/products");
     } catch (err) {
       console.error("Update failed:", err);
-      toast.error("Failed to update product");
+      toast.error(err.response?.data?.message || "Failed to update product");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
-      {/* Header */}
       <header className="dashboard-header">
         <h2>Edit Product</h2>
       </header>
@@ -226,6 +231,7 @@ const EditProductPage = () => {
               onChange={handleChange}
               placeholder="Description"
               className="px-3 py-2 rounded-xl w-full h-32 border border-gray-300"
+              required
             />
 
             {/* Sizes */}
@@ -314,12 +320,12 @@ const EditProductPage = () => {
 
             <button
               type="submit"
-              disabled={uploading}
+              disabled={loading || uploading}
               className={`bg-[#E67514] text-white px-5 py-2 rounded-xl w-full hover:bg-orange-600 ${
-                uploading ? "opacity-50 cursor-not-allowed" : ""
+                loading || uploading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {uploading ? "Uploading..." : "Update Product"}
+              {loading ? "Updating..." : "Update Product"}
             </button>
           </div>
 
