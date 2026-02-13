@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Fix for default marker icon not showing in Next.js
+// Fix marker icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -17,28 +17,48 @@ L.Icon.Default.mergeOptions({
 });
 
 const KtmMap = () => {
-  const position = [27.751501257971672, 85.39131030646053]; // Gokarneshwor
+  // multiple locations
+  const locations = [
+    {
+      name: "StyleHub - Gokarneshwor",
+      position: [27.751501257971672, 85.39131030646053],
+      address: "Gokarneshwor, Kathmandu",
+    },
+    {
+      name: "StyleHub - New Baneshwor",
+      position: [27.69, 85.335],
+      address: "New Baneshwor, Kathmandu",
+    },
+    {
+      name: "StyleHub - Thamel",
+      position: [27.7172, 85.324],
+      address: "Thamel, Kathmandu",
+    },
+  ];
 
   return (
     <div className="w-full h-[500px] rounded-2xl overflow-hidden shadow-md">
       <MapContainer
-        center={position}
-        zoom={15}
+        center={locations[0].position}
+        zoom={13}
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          attribution="&copy; OpenStreetMap"
         />
-        <Marker position={position}>
-          <Popup>
-            <span className="text-xl font-semibold text-orange-500">
-              StyleHub
-            </span>
-            <br />
-            Gokarneshwor, Kathmandu
-          </Popup>
-        </Marker>
+
+        {locations.map((location, index) => (
+          <Marker key={index} position={location.position}>
+            <Popup>
+              <span className="text-xl font-semibold text-orange-500">
+                {location.name}
+              </span>
+              <br />
+              {location.address}
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
     </div>
   );
