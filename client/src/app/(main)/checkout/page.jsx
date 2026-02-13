@@ -19,7 +19,7 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const { loading, handleSubmit: safeSubmit } = useSubmit();
 
-  const [isClient, setIsClient] = useState(false); // client-only flag
+  const [isClient, setIsClient] = useState(false);
 
   // mark as client
   useEffect(() => {
@@ -60,8 +60,8 @@ const CheckoutPage = () => {
       new Map(
         loadedCart
           .filter((item) => item.quantity > 0)
-          .map((item) => [`${item._id}-${item.size || "N/A"}`, item])
-      ).values()
+          .map((item) => [`${item._id}-${item.size}`, item]),
+      ).values(),
     );
 
     setCart(uniqueCart);
@@ -71,7 +71,7 @@ const CheckoutPage = () => {
 
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
-    0
+    0,
   );
   const shippingCost = 100;
   const grandTotal = subtotal + shippingCost;
@@ -106,7 +106,7 @@ const CheckoutPage = () => {
           price: item.price,
           quantity: item.quantity,
           image: item.image,
-          size: item.size || "N/A",
+          size: item.size,
         })),
       };
 
@@ -132,13 +132,13 @@ const CheckoutPage = () => {
           const { data } = await axios.post(
             `${baseURL}/orders/create`,
             orderData,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
 
           if (data.success) {
             clearCart();
             toast.success(
-              "Order placed successfully! Confirmation email has been sent."
+              "Order placed successfully! Confirmation email has been sent.",
             );
             router.push(`/orders/${data.orderId}`);
           }
@@ -148,7 +148,7 @@ const CheckoutPage = () => {
           const { data } = await axios.post(
             `${baseURL}/orders/esewa/initiate`,
             orderData,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
 
           if (data.success && data.paymentData) {
@@ -166,9 +166,9 @@ const CheckoutPage = () => {
 
   return (
     <main className="max-w-[1400px] mx-auto px-16 py-10">
-      <div className="flex items-center gap-3 text-[30px] font-bold mb-8">
+      <div className="flex items-center gap-3 text-2xl font-bold mb-8">
         <span
-          className="py-2 pr-3 cursor-pointer"
+          className="py-2 cursor-pointer"
           onClick={() => router.back() || router.push("/")}
         >
           <Back />
@@ -178,9 +178,9 @@ const CheckoutPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Shipping Info */}
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-6">Shipping Information</h2>
-          <form onSubmit={handleSubmitSafe} className="space-y-5">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-6">Shipping Information</h2>
+          <form onSubmit={handleSubmitSafe} className="space-y-4 text-sm">
             <input
               type="text"
               placeholder="Full Name"
@@ -216,7 +216,7 @@ const CheckoutPage = () => {
             />
 
             <div className="border-t pt-4">
-              <h3 className="text-xl font-bold mb-2">Payment Method</h3>
+              <h3 className="text-xl font-semibold mb-2">Payment Method</h3>
 
               <label className="flex items-center gap-3 border px-4 py-3 rounded-lg mb-2 cursor-pointer">
                 <input
@@ -247,7 +247,7 @@ const CheckoutPage = () => {
               className={`w-full py-4 rounded-lg font-bold ${
                 loading
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-orange-500 hover:bg-orange-600 text-white"
               }`}
               disabled={loading}
             >
@@ -257,43 +257,45 @@ const CheckoutPage = () => {
         </div>
 
         {/* Order Summary */}
-        <div className="bg-white p-8 rounded-lg shadow-md sticky top-4">
-          <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
-          <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
-            {cart.map((item, index) => (
-              <div key={`${item._id}-${index}`} className="flex gap-3">
-                <img
-                  src={
-                    item.image.startsWith("http")
-                      ? item.image
-                      : `${baseURL}/images/${item.image}`
-                  }
-                  className="w-20 h-20 rounded object-cover"
-                />
-                <div className="flex-1">
-                  <h3 className="font-semibold">{item.productName}</h3>
-                  <p className="text-sm">
-                    Qty: {item.quantity} × Rs.{item.price}
-                  </p>
-                  <p className="text-sm">Size: {item.size || "N/A"}</p>
+        <div className="lg:col-span-1">
+          <div className="bg-white p-6 rounded-lg shadow-md sticky top-4">
+            <h2 className="text-xl font-bold mb-6">Order Summary</h2>
+            <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
+              {cart.map((item, index) => (
+                <div key={`${item._id}-${index}`} className="flex gap-3">
+                  <img
+                    src={
+                      item.image.startsWith("http")
+                        ? item.image
+                        : `${baseURL}/images/${item.image}`
+                    }
+                    className="w-20 h-20 rounded object-cover"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{item.productName}</h3>
+                    <p className="text-sm">
+                      Qty: {item.quantity} × Rs.{item.price}
+                    </p>
+                    <p className="text-sm">Size: {item.size || "N/A"}</p>
+                  </div>
+                  <p className="font-bold">Rs.{item.price * item.quantity}</p>
                 </div>
-                <p className="font-bold">Rs.{item.price * item.quantity}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>Rs.{subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span>Rs.{shippingCost}</span>
-            </div>
-            <div className="flex justify-between font-bold text-xl border-t pt-2">
-              <span>Total</span>
-              <span>Rs.{grandTotal.toFixed(2)}</span>
+            <div className="border-t pt-4 space-y-2">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>Rs.{subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>Rs.{shippingCost}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                <span>Total</span>
+                <span>Rs.{grandTotal.toFixed(2)}</span>
+              </div>
             </div>
           </div>
         </div>

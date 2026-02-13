@@ -7,6 +7,7 @@ import Back from "@/UI/Back";
 import { CartContext } from "@/context/CartContext";
 import { toast } from "react-toastify";
 import { useSubmit } from "@/app/hooks/useSubmit";
+import { ShoppingCart, ArrowRight } from "lucide-react";
 
 const CartPage = () => {
   const router = useRouter();
@@ -17,7 +18,7 @@ const CartPage = () => {
   // Increase quantity
   const increaseQuantity = (productId, size) => {
     const product = cart.find(
-      (item) => item._id === productId && item.size === size
+      (item) => item._id === productId && item.size === size,
     );
     if (!product) return;
 
@@ -31,7 +32,7 @@ const CartPage = () => {
   // Decrease quantity
   const decreaseQuantity = (productId, size) => {
     const product = cart.find(
-      (item) => item._id === productId && item.size === size
+      (item) => item._id === productId && item.size === size,
     );
     if (product && product.quantity > 1) {
       updateQuantity(productId, product.quantity - 1, size);
@@ -47,7 +48,7 @@ const CartPage = () => {
   // Calculate total
   const calculateTotal = useMemo(
     () => cart.reduce((total, item) => total + item.price * item.quantity, 0),
-    [cart]
+    [cart],
   );
 
   // Checkout safely
@@ -77,9 +78,9 @@ const CartPage = () => {
     <main className="max-w-[1400px] min-h-screen mx-auto px-16 py-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="flex text-3xl font-bold">
+        <h1 className="flex text-2xl font-bold">
           <span
-            className="py-2 pr-3 cursor-pointer"
+            className="py-1 pr-2 cursor-pointer"
             onClick={() => router.back() || router.push("/")}
           >
             <Back />
@@ -93,7 +94,7 @@ const CartPage = () => {
             className={`px-4 py-2 rounded-lg ${
               loading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-amber-500 hover:bg-amber-600 text-white"
+                : "bg-orange-500 hover:bg-orange-600 text-white"
             }`}
           >
             {loading ? "Processing..." : "Clear Cart"}
@@ -102,13 +103,22 @@ const CartPage = () => {
       </div>
 
       {cart.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-2xl text-gray-500 mb-4">Your cart is empty</p>
+        <div className="text-center py-24 flex flex-col items-center">
+          <ShoppingCart size={60} className="text-gray-300 mb-6" />
+
+          <p className="text-xl font-semibold text-gray-700 mb-2">
+            Your cart is empty
+          </p>
+
+          <p className="text-gray-500 mb-6">
+            Looks like you haven't added anything to your cart yet.
+          </p>
+
           <button
             onClick={() => router.push("/products")}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition flex items-center gap-2 shadow-md"
           >
-            Continue Shopping
+            Continue Shopping <ArrowRight size={18} />
           </button>
         </div>
       ) : (
@@ -135,7 +145,7 @@ const CartPage = () => {
 
                 {/* Product Info */}
                 <div className="grow">
-                  <h2 className="text-xl font-semibold mb-2">
+                  <h2 className="text-lg font-semibold mb-2">
                     {item.productName}
                   </h2>
                   <p className="text-gray-600 mb-2">Size: {item.size}</p>
@@ -181,7 +191,7 @@ const CartPage = () => {
 
                 {/* Item total */}
                 <div className="text-right">
-                  <p className="text-xl font-bold">
+                  <p className="text-lg font-bold">
                     Rs. {(item.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
@@ -192,7 +202,7 @@ const CartPage = () => {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-md sticky top-4">
-              <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
+              <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
               <div className="space-y-3 mb-4">
                 <div className="flex justify-between">
@@ -204,7 +214,7 @@ const CartPage = () => {
               </div>
 
               <div className="border-t pt-4 mb-6">
-                <div className="flex justify-between text-xl font-bold">
+                <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
                   <span>Rs. {calculateTotal.toFixed(2)}</span>
                 </div>
@@ -216,7 +226,7 @@ const CartPage = () => {
                 className={`w-full py-3 font-semibold rounded-lg ${
                   loading
                     ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-orange-500 text-white hover:bg-orange-600"
                 }`}
               >
                 {loading ? "Processing..." : "Proceed to Checkout"}

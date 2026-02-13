@@ -119,15 +119,15 @@ const ProductDetails = () => {
         >
           <Back />
         </span>
-        <h1>Product Details</h1>
+        <h1 className="text-2xl">Product Details</h1>
       </div>
 
       {/* Product container */}
       <div className="flex justify-center">
-        <div className="w-full max-w-[1000px] flex-col bg-white rounded-2xl mt-5 shadow-xl overflow-hidden">
+        <div className="w-full max-w-[1000px] flex-col bg-white rounded-2xl mt-5 shadow-sm overflow-hidden">
           <div className="flex flex-col lg:flex-row">
             {/* Product Image */}
-            <div className="h-[350px] w-[350px] m-10 bg-gray-200 flex items-center justify-center rounded-2xl overflow-hidden">
+            <div className="h-[300px] w-[300px] m-10 bg-gray-200 flex items-center justify-center rounded-2xl overflow-hidden">
               <img
                 src={
                   product.image.startsWith("http")
@@ -141,15 +141,15 @@ const ProductDetails = () => {
 
             {/* Product Info */}
             <div className="mx-5 mt-10 flex-1">
-              <h1 className="text-2xl font-bold">{product.productName}</h1>
+              <h1 className="text-xl font-bold">{product.productName}</h1>
 
-              <p className="mt-3 text-xl">
+              <p className="mt-3 text-lg">
                 Category: {product.gender || product.category || "N/A"}
               </p>
 
               {/* Size Selection */}
               {product.sizes && product.sizes.length > 0 && (
-                <div className="my-2 text-xl">
+                <div className="my-2 text-lg">
                   <label className="">Select Size: </label>
                   <select
                     value={selectedSize?.size || ""}
@@ -167,13 +167,14 @@ const ProductDetails = () => {
                         key={s.size}
                         value={s.size}
                         disabled={s.quantity === 0}
+                        className="text-lg"
                       >
                         {s.size} {s.quantity === 0 ? "(Out of stock)" : ""}
                       </option>
                     ))}
                   </select>
                   {selectedSize && (
-                    <p className="mt-2 text-xl ">
+                    <p className="mt-2 text-lg ">
                       Price: Rs.{selectedSize.price}
                     </p>
                   )}
@@ -181,7 +182,7 @@ const ProductDetails = () => {
               )}
 
               {/* Quantity */}
-              <div className="flex gap-2 items-center mt-2 text-xl ">
+              <div className="flex gap-2 items-center mt-2 text-lg ">
                 <h1>Quantity:</h1>
                 <button
                   className="px-2 py-2 rounded-xl bg-[#F0E8E8]"
@@ -220,9 +221,9 @@ const ProductDetails = () => {
           </div>
 
           {/* Description */}
-          <div className="px-10 pb-10 text-[20px] font-semibold">
+          <div className="px-10 pb-10 text-xl font-semibold">
             Description:
-            <p className="text-xl font-normal mt-2 text-justify">
+            <p className="text-lg font-normal mt-2 text-justify">
               {product.description || "No description available."}
             </p>
           </div>
@@ -230,7 +231,7 @@ const ProductDetails = () => {
       </div>
 
       <div className="mt-10">
-        <h2 className="text-2xl font-bold mb-4">You may also like</h2>
+        <h2 className="text-xl font-bold mb-4">You may also like</h2>
         <Product limit={5} />
       </div>
     </main>
