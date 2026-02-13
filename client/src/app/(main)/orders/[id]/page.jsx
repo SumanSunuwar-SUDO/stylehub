@@ -89,60 +89,70 @@ const OrderConfirmationPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Order Details */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-2xl font-bold mb-6">Order Details</h2>
+        <div className="lg:col-span-2">
+          <div className="bg-white p-6 rounded-lg shadow-md sticky top-4">
+            <h2 className="text-xl font-bold mb-4">Order Details</h2>
 
-          {/* Order Items */}
-          <div className="space-y-4 mb-6">
-            {order.items?.map((item, index) => (
-              <div key={index} className="flex gap-4 border-b pb-4">
-                <img
-                  src={
-                    item.image?.startsWith("http")
-                      ? item.image
-                      : `${baseURL}/images/${item.image}`
-                  }
-                  alt={item.productName}
-                  className="w-24 h-24 rounded object-cover"
-                />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{item.productName}</h3>
-                  <p className="text-gray-600">Size: {item.size || "N/A"}</p>
-                  <p className="text-gray-600">Quantity: {item.quantity}</p>
-                  <p className="font-bold text-blue-600">Rs.{item.price}</p>
+            {/* Order Items */}
+            <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto">
+              {order.items?.map((item, index) => (
+                <div key={index} className="flex gap-4 border-b pb-3">
+                  <img
+                    src={
+                      item.image?.startsWith("http")
+                        ? item.image
+                        : `${baseURL}/images/${item.image}`
+                    }
+                    alt={item.productName}
+                    className="w-24 h-24 rounded object-cover"
+                  />
+                  <div className="flex-1 text-md">
+                    <h3 className="font-semibold text-lg">
+                      {item.productName}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      Size: {item.size || "N/A"}
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      Quantity: {item.quantity}
+                    </p>
+                    <p className="font-bold text-blue-600 text-sm">
+                      Rs.{item.price}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-md">
+                      Rs.{item.price * item.quantity}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-lg">
-                    Rs.{item.price * item.quantity}
-                  </p>
-                </div>
+              ))}
+            </div>
+
+            {/* Order Summary */}
+            <div className="border-t pt-4 space-y-2">
+              <div className="flex justify-between text-gray-600">
+                <span>Subtotal</span>
+                <span>Rs.{order.subTotal?.toFixed(2)}</span>
               </div>
-            ))}
-          </div>
-
-          {/* Order Summary */}
-          <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between text-gray-600">
-              <span>Subtotal</span>
-              <span>Rs.{order.subTotal?.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span>Shipping</span>
-              <span>Rs.{(order.total - order.subTotal).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between font-bold text-xl border-t pt-2">
-              <span>Total</span>
-              <span>Rs.{order.total?.toFixed(2)}</span>
+              <div className="flex justify-between text-gray-600">
+                <span>Shipping</span>
+                <span>Rs.{(order.total - order.subTotal)?.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-bold text-lg border-t pt-2">
+                <span>Total</span>
+                <span>Rs.{order.total?.toFixed(2)}</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Shipping & Payment Info */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Shipping Info */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-bold mb-4">Shipping Information</h3>
-            <div className="space-y-2 text-gray-600">
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="text-xl font-bold mb-2">Shipping Information</h3>
+            <div className="space-y-1 text-gray-600 text-sm">
               <p>
                 <span className="font-semibold">Name:</span> {order.fullName}
               </p>
@@ -159,24 +169,22 @@ const OrderConfirmationPage = () => {
           </div>
 
           {/* Payment Info */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-bold mb-4">Payment Information</h3>
-            <div className="space-y-2">
-              <p className="text-gray-600">
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="text-xl font-bold mb-2">Payment Information</h3>
+            <div className="space-y-1 text-gray-600 text-sm">
+              <p>
                 <span className="font-semibold">Method:</span>{" "}
                 {order.paymentMethod === "cod" ? "Cash on Delivery" : "eSewa"}
               </p>
-
-              <p className="text-gray-600">
+              <p>
                 <span className="font-semibold">Payment Status:</span>{" "}
-                <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
+                <span className="bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-sm">
                   {order.paymentStatus || "Pending"}
                 </span>
               </p>
-
-              <p className="text-gray-600">
+              <p>
                 <span className="font-semibold">Order Status:</span>{" "}
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm">
                   {order.orderStatus || "Pending"}
                 </span>
               </p>
@@ -184,17 +192,16 @@ const OrderConfirmationPage = () => {
           </div>
 
           {/* Buttons */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <button
               onClick={() => router.push("/orders")}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700"
+              className="w-full bg-orange-500 text-white py-2 rounded-lg font-semibold hover:bg-orange-600"
             >
               View All Orders
             </button>
-
             <button
               onClick={() => router.push("/")}
-              className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300"
+              className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300"
             >
               Continue Shopping
             </button>

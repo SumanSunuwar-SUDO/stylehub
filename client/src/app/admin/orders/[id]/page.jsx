@@ -16,10 +16,12 @@ const Page = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
+  // Fetch order details
   const fetchOrder = async () => {
     try {
       const token = localStorage.getItem("accessToken");
       if (!token) {
+        toast.error("Please log in to view order details");
         router.push("/login");
         return;
       }
@@ -42,6 +44,7 @@ const Page = () => {
     if (orderId) fetchOrder();
   }, [orderId]);
 
+  // Get display payment status
   const getPaymentStatus = () => {
     if (order.paymentMethod === "cod" && order.orderStatus === "delivered")
       return "Completed";
@@ -57,7 +60,13 @@ const Page = () => {
     }
   };
 
+  // Update order status
   const handleStatusUpdate = async () => {
+    if (["delivered", "cancelled"].includes(order.orderStatus)) {
+      toast.info("Cannot change a delivered or cancelled order");
+      return;
+    }
+
     try {
       setUpdating(true);
       const token = localStorage.getItem("accessToken");
@@ -71,10 +80,10 @@ const Page = () => {
 
       setOrder({ ...res.data.order, tempStatus: undefined });
       toast.success("Order status updated!");
-      setUpdating(false);
     } catch (err) {
-      setUpdating(false);
       toast.error(err.response?.data?.message || "Failed to update status");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -98,6 +107,7 @@ const Page = () => {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-5">
+        {/* Order Items */}
         <div className="lg:col-span-2 bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Order Items</h2>
 
@@ -148,6 +158,7 @@ const Page = () => {
           </div>
         </div>
 
+        {/* Shipment & Status */}
         <div className="space-y-6">
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-3">Shipment Info</h3>
@@ -167,6 +178,7 @@ const Page = () => {
 
           <div className="bg-white shadow rounded-lg p-6">
             <h1 className="text-xl font-semibold mb-3">Order Status</h1>
+
             <div className="flex justify-between items-center mb-3">
               <h1 className="font-semibold">Payment Status</h1>
               <span className="text-gray-700 font-medium">
@@ -176,8 +188,8 @@ const Page = () => {
 
             <div className="flex justify-between items-center">
               <h1 className="font-semibold">Shipping Status</h1>
-              {order.paymentMethod === "cod" &&
-              ["delivered", "cancelled"].includes(order.orderStatus) ? (
+
+              {["delivered", "cancelled"].includes(order.orderStatus) ? (
                 <span className="text-gray-700 font-medium">
                   {order.orderStatus}
                 </span>
