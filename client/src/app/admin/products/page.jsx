@@ -58,12 +58,12 @@ const Page = () => {
 
   return (
     <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
-      <div className="h-[65px] bg-[#E67514] w-full flex justify-between items-center border-b px-5">
-        <h2 className="text-2xl font-bold text-white">Products</h2>
-      </div>
+      <header className="h-[65px] bg-white w-full flex justify-between items-center border-b px-5">
+        <h2 className="text-xl font-semibold text-[#E67514]">Products</h2>
+      </header>
 
       <div className="my-5 px-5 flex justify-between items-center">
-        <h1 className="text-xl font-bold">All Products</h1>
+        <h1 className="text-xl font-semibold">All Products</h1>
         <form
           onSubmit={handleSearchSubmit}
           className="flex items-center relative"
@@ -85,9 +85,9 @@ const Page = () => {
       </div>
 
       <div className="overflow-x-auto bg-white rounded-md shadow">
-        <table className="w-full text-md font-normal">
-          <thead className="bg-gray-300 border-b">
-            <tr>
+        <table className="w-full">
+          <thead className="text-gray-800 border-b">
+            <tr className="text-md font-light">
               <th className="text-left px-4 py-3">S.N.</th>
               <th className="text-left px-4 py-3">Image</th>
               <th className="text-left px-4 py-3">Product Name</th>

@@ -27,7 +27,7 @@ const Page = () => {
         });
 
         const sortedOrders = (res.data.result || []).sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
         );
 
         setOrders(sortedOrders);
@@ -35,7 +35,7 @@ const Page = () => {
       } catch (error) {
         console.error(
           "Error fetching orders:",
-          error.response?.data || error.message
+          error.response?.data || error.message,
         );
         toast.error("Failed to fetch orders!");
       } finally {
@@ -55,7 +55,7 @@ const Page = () => {
       (o) =>
         o.fullName.toLowerCase().includes(term) ||
         o.email.toLowerCase().includes(term) ||
-        o._id.toLowerCase().includes(term)
+        o._id.toLowerCase().includes(term),
     );
     setFilteredOrders(filtered);
   }, [searchTerm, orders]);
@@ -71,32 +71,32 @@ const Page = () => {
       const res = await axios.put(
         `${baseURL}/orders/status/${order._id}`,
         { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setOrders((prev) =>
         prev.map((o) =>
           o._id === order._id
             ? { ...res.data.order, isEditing: false, tempStatus: undefined }
-            : o
-        )
+            : o,
+        ),
       );
       setFilteredOrders((prev) =>
         prev.map((o) =>
           o._id === order._id
             ? { ...res.data.order, isEditing: false, tempStatus: undefined }
-            : o
-        )
+            : o,
+        ),
       );
 
       toast.success("Order status updated!");
     } catch (err) {
       console.error(
         "Error updating status:",
-        err.response?.data?.message || err.message
+        err.response?.data?.message || err.message,
       );
       toast.error(
-        err.response?.data?.message || "Failed to update order status!"
+        err.response?.data?.message || "Failed to update order status!",
       );
     } finally {
       setSavingStatus((prev) => ({ ...prev, [order._id]: false }));
@@ -106,9 +106,9 @@ const Page = () => {
   return (
     <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
       {/* Header */}
-      <div className="h-[65px] bg-[#E67514] w-full flex justify-between items-center border-b px-5">
-        <h2 className="text-xl font-semibold text-white">Orders</h2>
-      </div>
+      <header className="h-[65px] bg-white w-full flex justify-between items-center border-b px-5">
+        <h2 className="text-xl font-semibold text-[#E67514]">Orders</h2>
+      </header>
 
       {/* Search Bar */}
       <div className="mt-8 px-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -172,8 +172,8 @@ const Page = () => {
                   order.orderStatus === "delivered"
                     ? "bg-green-100 text-green-700"
                     : order.orderStatus === "processing"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700";
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-red-100 text-red-700";
 
                 return (
                   <tr
@@ -215,7 +215,7 @@ const Page = () => {
 
                       {order.paymentMethod === "cod" &&
                         !["delivered", "cancelled"].includes(
-                          order.orderStatus
+                          order.orderStatus,
                         ) &&
                         (order.isEditing ? (
                           <div className="flex items-center gap-2">
@@ -226,8 +226,8 @@ const Page = () => {
                                   prev.map((o) =>
                                     o._id === order._id
                                       ? { ...o, tempStatus: e.target.value }
-                                      : o
-                                  )
+                                      : o,
+                                  ),
                                 )
                               }
                               className="border rounded px-2 py-1 text-sm"
@@ -257,8 +257,8 @@ const Page = () => {
                                 prev.map((o) =>
                                   o._id === order._id
                                     ? { ...o, isEditing: true }
-                                    : o
-                                )
+                                    : o,
+                                ),
                               )
                             }
                             className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
