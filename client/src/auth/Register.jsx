@@ -19,11 +19,24 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const validPassword = (password) => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{5,}$/;
+    return passwordRegex.test(password);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!firstName || !lastName || !email || !password || !address) {
       toast.error("All fields are required!");
+      return;
+    }
+
+    if (!validPassword(password)) {
+      toast.error(
+        "Password must be at least 5 characters long and include uppercase, lowercase, number, and special character.",
+      );
       return;
     }
 
