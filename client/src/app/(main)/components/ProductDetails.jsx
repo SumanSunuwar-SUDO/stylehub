@@ -223,7 +223,7 @@ const ProductDetails = () => {
           {/* Description */}
           <div className="px-10 pb-10 text-xl font-semibold">
             Description:
-            <p className="text-lg font-normal mt-2 text-justify">
+            <p className="text-lg font-normal whitespace-pre-line mt-2 text-justify">
               {product.description || "No description available."}
             </p>
           </div>
