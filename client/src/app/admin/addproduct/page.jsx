@@ -5,7 +5,7 @@ import axios from "axios";
 import { baseURL } from "@/config/env";
 import { toast } from "react-toastify";
 
-const page = () => {
+const Page = () => {
   const [product, setProduct] = useState({
     productName: "",
     mainCategory: "",
@@ -19,6 +19,7 @@ const page = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const mainCategories = {
     Clothing: ["T-Shirts", "Shirts", "Jeans", "Jackets", "Hoodies", "Shorts"],
@@ -55,37 +56,79 @@ const page = () => {
       });
       setProduct((prev) => ({ ...prev, image: res.data.imageUrl }));
       toast.success("Image uploaded successfully!");
-      setUploading(false);
     } catch (err) {
-      setUploading(false);
       console.error("Image upload failed", err);
       toast.error("Image upload failed!");
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (submitting || uploading) return;
+
+    // VALIDATION
+    if (!product.productName.trim()) {
+      toast.error("Product name is required");
+      return;
+    }
+    if (!product.mainCategory) {
+      toast.error("Please select main category");
+      return;
+    }
+    if (!product.gender) {
+      toast.error("Please select gender");
+      return;
+    }
+    if (!product.subCategory) {
+      toast.error("Please select subcategory");
+      return;
+    }
+    if (!product.description.trim()) {
+      toast.error("Description is required");
+      return;
+    }
     if (!product.image) {
-      toast.error("Please upload an image first!");
+      toast.error("Please upload product image");
       return;
     }
-
     if (sizes.length === 0) {
-      toast.error("Please add at least one size!");
+      toast.error("Please add at least one size");
       return;
     }
 
-    const payload = { ...product, sizes };
+    // Validate each size entry
+    for (let s of sizes) {
+      if (!s.size || !s.quantity || !s.price) {
+        toast.error("Please fill all size, quantity, and price fields");
+        return;
+      }
+      if (Number(s.quantity) <= 0) {
+        toast.error("Quantity must be greater than 0");
+        return;
+      }
+      if (Number(s.price) <= 0) {
+        toast.error("Price must be greater than 0");
+        return;
+      }
+    }
 
     try {
+      setSubmitting(true);
+
       const token = localStorage.getItem("accessToken");
+
+      const payload = { ...product, sizes };
+
       await axios.post(`${baseURL}/products/create`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success("Product created successfully!");
 
+      // Reset form
       setProduct({
         productName: "",
         mainCategory: "",
@@ -99,27 +142,33 @@ const page = () => {
       setPreview(null);
     } catch (err) {
       console.error("Product creation failed", err);
-      toast.error("Failed to create product!");
+      toast.error(err?.response?.data?.message || "Failed to create product");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
-      <header className="dashboard-header">
-        <h2>Add Products</h2>
+    <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8] p-4">
+      <header className="mb-4">
+        <h2 className="text-2xl font-semibold">Add Products</h2>
       </header>
 
       <div className="m-5 bg-white rounded-2xl p-6 shadow-md">
         <h1 className="text-xl font-semibold mb-6">Add New Product</h1>
 
-        <form className="flex gap-6 text-sm" onSubmit={handleSubmit}>
+        <form
+          className="flex flex-col md:flex-row gap-6 text-sm"
+          onSubmit={handleSubmit}
+        >
           <div className="flex-1 grid grid-cols-1 gap-4">
+            {/* Product Name */}
             <div>
               <label className="block font-medium mb-1">Product Name:</label>
               <input
                 type="text"
                 name="productName"
-                value={product.productName || ""}
+                value={product.productName}
                 onChange={handleChange}
                 placeholder="Enter product name"
                 className="px-3 py-2 rounded-xl w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
@@ -127,11 +176,12 @@ const page = () => {
               />
             </div>
 
+            {/* Category */}
             <div>
               <label className="block font-medium mb-1">Category:</label>
               <select
                 name="mainCategory"
-                value={product.mainCategory || ""}
+                value={product.mainCategory}
                 onChange={(e) => {
                   const selectedMain = e.target.value;
                   setProduct({
@@ -141,7 +191,6 @@ const page = () => {
                     subCategory: "",
                   });
                   setSizes([]);
-                  toast.info("Category changed, please select again");
                 }}
                 className="px-3 py-2 rounded-xl w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 required
@@ -155,12 +204,13 @@ const page = () => {
               </select>
             </div>
 
+            {/* Gender */}
             {product.mainCategory && (
               <div>
                 <label className="block font-medium mb-1">Gender:</label>
                 <select
                   name="gender"
-                  value={product.gender || ""}
+                  value={product.gender}
                   onChange={(e) =>
                     setProduct({ ...product, gender: e.target.value })
                   }
@@ -174,12 +224,13 @@ const page = () => {
               </div>
             )}
 
+            {/* Subcategory */}
             {product.mainCategory && product.gender && (
               <div>
                 <label className="block font-medium mb-1">Subcategory:</label>
                 <select
                   name="subCategory"
-                  value={product.subCategory || ""}
+                  value={product.subCategory}
                   onChange={handleChange}
                   className="px-3 py-2 rounded-xl w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
                   required
@@ -194,6 +245,7 @@ const page = () => {
               </div>
             )}
 
+            {/* Sizes */}
             {product.mainCategory && product.gender && product.subCategory && (
               <div>
                 <label className="block font-medium mb-1">
@@ -265,10 +317,9 @@ const page = () => {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setSizes([...sizes, { size: "", quantity: "", price: "" }]);
-                    toast.success("Size added");
-                  }}
+                  onClick={() =>
+                    setSizes([...sizes, { size: "", quantity: "", price: "" }])
+                  }
                   className="bg-green-500 text-white px-3 py-1 rounded"
                 >
                   Add Size
@@ -276,29 +327,35 @@ const page = () => {
               </div>
             )}
 
+            {/* Description */}
             <div>
               <label className="block font-medium mb-1">Description:</label>
               <textarea
                 name="description"
-                value={product.description || ""}
+                value={product.description}
                 onChange={handleChange}
                 placeholder="Enter product description"
                 className="px-3 py-2 rounded-xl w-full h-32 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                required
               />
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
-              disabled={uploading}
-              className={`bg-[#E67514] text-white px-5 py-2 rounded-xl w-full hover:bg-orange-600 transition ${
-                uploading ? "opacity-50 cursor-not-allowed" : ""
+              disabled={uploading || submitting}
+              className={`bg-[#E67514] text-white px-5 py-2 rounded-xl w-full transition ${
+                uploading || submitting
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-orange-600"
               }`}
             >
-              Add Product
+              {submitting ? "Adding Product..." : "Add Product"}
             </button>
           </div>
 
-          <div className="w-1/3 flex flex-col items-center justify-start gap-4 p-4 border border-gray-200 rounded-xl bg-gray-50">
+          {/* Image Upload */}
+          <div className="w-full md:w-1/3 flex flex-col items-center justify-start gap-4 p-4 border border-gray-200 rounded-xl bg-gray-50">
             <label className="block font-medium mb-1">Product Image:</label>
 
             {preview ? (
@@ -319,7 +376,7 @@ const page = () => {
               </div>
             )}
 
-            <label className="w-full flex flex-col items-center px-4 py-2 bg-[#E67514] text-white rounded-xl shadow-md tracking-wide cursor-pointer hover:bg-orange-600 transition">
+            <label className="w-full flex flex-col items-center px-4 py-2 bg-[#E67514] text-white rounded-xl shadow-md cursor-pointer hover:bg-orange-600 transition">
               <span className="text-sm font-medium">Choose File</span>
               <input
                 type="file"
@@ -337,4 +394,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
