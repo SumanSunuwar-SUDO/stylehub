@@ -10,6 +10,7 @@ import { AuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import { baseURL } from "@/config/env";
 import { toast } from "react-toastify";
+import LogoutIcon from "@/UI/LogoutIcon";
 
 const Navbar = () => {
   const { cart, getTotalItems } = useContext(CartContext);
@@ -267,10 +268,14 @@ const Navbar = () => {
                   </div>
 
                   <button
+                    type="button"
                     onClick={handleLogout}
-                    className="w-full bg-blue-600 text-white py-2 rounded-md text-sm hover:bg-blue-700"
+                    className="mt-2 w-full  text-white py-2 rounded bg-[#E67514] hover:bg-[#C25A00] transition-all duration-300"
                   >
-                    Logout
+                    <span className="flex items-center justify-start pl-2 gap-2">
+                      {" "}
+                      <LogoutIcon /> Logout
+                    </span>
                   </button>
                 </div>
               )}
