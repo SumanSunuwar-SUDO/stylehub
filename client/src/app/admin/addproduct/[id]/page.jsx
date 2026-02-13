@@ -142,14 +142,14 @@ const EditProductPage = () => {
   return (
     <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
       {/* Header */}
-      <div className="h-[65px] bg-[#E67514] w-full flex justify-between items-center border-b px-5">
-        <h2 className="text-xl font-semibold text-white">Edit Product</h2>
-      </div>
+      <header className="dashboard-header">
+        <h2>Edit Product</h2>
+      </header>
 
       <div className="my-5 bg-white rounded-2xl p-6 shadow-md">
-        <h1 className="text-2xl font-bold mb-6">Edit Product</h1>
+        <h1 className="text-xl font-semibold mb-6">Edit Product</h1>
 
-        <form className="flex gap-6" onSubmit={handleSubmit}>
+        <form className="flex gap-6 text-sm" onSubmit={handleSubmit}>
           {/* Left Column */}
           <div className="flex-1 grid grid-cols-1 gap-4">
             <input

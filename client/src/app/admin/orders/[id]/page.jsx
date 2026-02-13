@@ -66,7 +66,7 @@ const Page = () => {
       const res = await axios.put(
         `${baseURL}/orders/status/${order._id}`,
         { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setOrder({ ...res.data.order, tempStatus: undefined });
@@ -93,9 +93,9 @@ const Page = () => {
 
   return (
     <main className="max-w-[1400px] mx-auto bg-[#F0E8E8] min-h-screen">
-      <div className="h-[65px] bg-[#E67514] flex items-center px-5">
-        <h2 className="text-xl font-semibold text-white">Order Details</h2>
-      </div>
+      <header className="dashboard-header">
+        <h2>Order Details</h2>
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-5">
         <div className="lg:col-span-2 bg-white shadow rounded-lg p-6">

@@ -13,7 +13,7 @@ exports.getDashboardStats = async (req, res, next) => {
     });
 
     //pending payments
-    const pendignPayments = await Order.countDocuments({
+    const pendingPayments = await Order.countDocuments({
       paymentStatus: "pending",
     });
 
@@ -30,7 +30,7 @@ exports.getDashboardStats = async (req, res, next) => {
       data: {
         totalSales,
         totalOrders,
-        pendignPayments,
+        pendingPayments,
         totalCustomers,
       },
     });

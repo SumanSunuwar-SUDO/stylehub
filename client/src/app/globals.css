@@ -203,4 +203,8 @@
   .toph {
     @apply text-2xl font-bold;
   }
+
+  .dashboard-header {
+    @apply h-[65px] bg-white text-[#E67514] text-xl font-semibold  w-full flex justify-between items-center border-b px-5;
+  }
 }

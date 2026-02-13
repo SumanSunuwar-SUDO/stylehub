@@ -6,12 +6,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import AreaChart from "../components/AreaChart";
 import CategoryPieChart from "../components/PieChart";
-import {
-  TrendingUpDown,
-  ShoppingCartIcon,
-  CreditCardIcon,
-  Users2,
-} from "lucide-react";
+import { ShoppingCartIcon, CreditCardIcon, Users2 } from "lucide-react";
 import TrendingUp from "@/UI/TrendingUp";
 const statsCards = [
   {
@@ -61,8 +56,8 @@ const DashboardPage = () => {
   return (
     <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
       {/* Header */}
-      <header className="h-[65px] bg-white w-full flex justify-between items-center border-b px-5">
-        <h2 className="text-xl font-semibold text-[#E67514]">Dashboard</h2>
+      <header className="dashboard-header ">
+        <h2>Dashboard</h2>
       </header>
 
       {/* Stats Cards */}

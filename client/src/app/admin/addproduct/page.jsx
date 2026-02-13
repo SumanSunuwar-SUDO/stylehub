@@ -105,14 +105,14 @@ const page = () => {
 
   return (
     <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
-      <header className="h-[65px] bg-white w-full flex justify-between items-center border-b px-5">
-        <h2 className="text-xl font-semibold text-[#E67514]">Add Products</h2>
+      <header className="dashboard-header">
+        <h2>Add Products</h2>
       </header>
 
       <div className="m-5 bg-white rounded-2xl p-6 shadow-md">
-        <h1 className="text-2xl font-bold mb-6">Add New Product</h1>
+        <h1 className="text-xl font-semibold mb-6">Add New Product</h1>
 
-        <form className="flex gap-6" onSubmit={handleSubmit}>
+        <form className="flex gap-6 text-sm" onSubmit={handleSubmit}>
           <div className="flex-1 grid grid-cols-1 gap-4">
             <div>
               <label className="block font-medium mb-1">Product Name:</label>
