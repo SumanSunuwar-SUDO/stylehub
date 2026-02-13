@@ -90,7 +90,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="h-[80px]  bg-white/90 ">
+    <nav className="h-20  bg-white/90 ">
       <div className="max-w-[1400px] flex justify-between items-center container mx-auto h-full">
         {/* Logo */}
         <div className="flex items-center justify-between w-[70%]">
