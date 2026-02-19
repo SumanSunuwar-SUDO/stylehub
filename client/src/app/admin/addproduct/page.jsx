@@ -149,9 +149,9 @@ const Page = () => {
   };
 
   return (
-    <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8] p-4">
-      <header className="mb-4">
-        <h2 className="text-2xl font-semibold">Add Products</h2>
+    <main className="min-h-screen max-w-[1400px] mx-auto bg-[#F0E8E8]">
+      <header className="dashboard-header">
+        <h2>Add Products</h2>
       </header>
 
       <div className="m-5 bg-white rounded-2xl p-6 shadow-md">
